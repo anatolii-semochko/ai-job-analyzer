@@ -1,0 +1,12 @@
+node_modules/
+client/node_modules/
+server/node_modules/
+client/dist/
+.git/
+.gitignore
+.env
+.idea/
+ai-job/
+api/
+node-server/
+*.md
