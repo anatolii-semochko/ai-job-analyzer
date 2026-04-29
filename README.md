@@ -4,6 +4,8 @@ A single-page tool for collecting, storing, and AI-rating job vacancies from DOU
 
 **Local URL:** http://127.0.0.1:3747/
 
+![AI Job Analyzer Interface](docs/screenshot.png)
+
 ---
 
 ## How it works
