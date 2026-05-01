@@ -160,6 +160,11 @@ const Jobs = ({ onUpdate }) => {
                 try {
                     await remove(job.hash)
                     setJobs(jobs.filter(j => j.hash !== job.hash))
+                    await updateFilterOptions()
+                    const options = await getFilterOptions()
+                    if (options) {
+                        setFilterOptions(options)
+                    }
                     onUpdate?.()
                 } catch (e) {
                     console.error('Failed to delete job:', e)
