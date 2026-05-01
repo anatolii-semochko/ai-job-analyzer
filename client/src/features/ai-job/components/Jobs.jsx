@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { fetch as fetchJobs, remove, updateFlags, getFilterOptions } from '../service/jobService'
+import { fetch as fetchJobs, remove, updateFlags, getFilterOptions, updateFilterOptions } from '../service/jobService'
 import { analyzeJob } from '../service/jobAi'
 import Table from './common/Table'
 import TableFilter from './common/TableFilter'
+import AddJobModal from './common/AddJobModal'
 import { ACTION_TYPES } from './common/TableActions'
 
 const Jobs = ({ onUpdate }) => {
@@ -15,6 +16,7 @@ const Jobs = ({ onUpdate }) => {
     const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 })
     const [filterOptions, setFilterOptions] = useState(null)
     const [filters, setFilters] = useState({ parser: '', country: '', company: '', search: '' })
+    const [showAddModal, setShowAddModal] = useState(false)
 
     const loadJobs = async () => {
         setLoading(true)
@@ -166,6 +168,16 @@ const Jobs = ({ onUpdate }) => {
         }
     }
 
+    const handleAddJob = () => {
+        setShowAddModal(true)
+    }
+
+    const handleJobAdded = async (newJob) => {
+        await updateFilterOptions()
+        await loadJobs()
+        onUpdate?.()
+    }
+
     const actions = [
         ACTION_TYPES.AI,
         ACTION_TYPES.FAVORITE,
@@ -188,6 +200,7 @@ const Jobs = ({ onUpdate }) => {
                     filters={filters}
                     onFilterChange={handleFilterChange}
                     onReset={handleResetFilters}
+                    onAddJob={handleAddJob}
                 >
                     {unanalyzedJobs.length > 0 && (
                         <button
@@ -217,6 +230,13 @@ const Jobs = ({ onUpdate }) => {
                     emptyMessage="No new jobs in database"
                 />
             )}
+
+            <AddJobModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onJobAdded={handleJobAdded}
+                filterOptions={filterOptions}
+            />
         </div>
     )
 }
