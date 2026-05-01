@@ -34,9 +34,9 @@ const Table = ({
                 <tr>
                     <th>Position</th>
                     <th>Company</th>
-                    <th>Salary</th>
+                    <th className="pe-3">Salary</th>
                     <th>Rates</th>
-                    <th style={{ textAlign: 'center' }}>Score</th>
+                    <th>Score</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
             </thead>
@@ -47,9 +47,7 @@ const Table = ({
                             <td>
                                 <strong>{job.title}</strong>
                                 <br />
-                                <span className="badge bg-secondary" style={{ fontSize: '9px' }}>
-                                    {job.parser}
-                                </span>
+                                <span className="text-muted small">{job.parser}</span>
                             </td>
 
                             <td>
@@ -92,7 +90,7 @@ const Table = ({
 
                         {expandedJob === job.hash && (
                             <tr>
-                                <td colSpan="6" className="bg-light">
+                                <td colSpan="6" className="bg-light ">
                                     <JobDetails job={job} onJobUpdate={onJobUpdate} />
                                 </td>
                             </tr>
