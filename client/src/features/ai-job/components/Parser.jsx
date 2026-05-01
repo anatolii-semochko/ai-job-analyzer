@@ -14,6 +14,7 @@ const Parser = ({ onUpdate }) => {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
     const [saveResult, setSaveResult] = useState(null)
+    const [uploadedFile, setUploadedFile] = useState(null)
 
     const parsersList = getParsersList()
 
@@ -122,6 +123,41 @@ const Parser = ({ onUpdate }) => {
         handleParseData(inputData)
     }
 
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        setUploadedFile(file)
+        setError(null)
+        setSaveResult(null)
+
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            try {
+                const content = e.target.result
+                setInputData(content)
+
+                if (file.name.toLowerCase().endsWith('.json')) {
+                    JSON.parse(content)
+                }
+
+                console.log('[Parser] File uploaded:', file.name, 'Size:', file.size)
+            } catch (error) {
+                console.error('[Parser] File reading error:', error)
+                setError(`Failed to read file: ${error.message}`)
+            }
+        }
+        reader.onerror = () => {
+            setError('Failed to read file')
+        }
+        reader.readAsText(file)
+    }
+
+    const handleParseUploadedFile = () => {
+        if (!uploadedFile) return
+        handleParseData(inputData)
+    }
+
     const handleSaveJobs = async () => {
         if (jobs.length === 0) return
 
@@ -212,6 +248,31 @@ const Parser = ({ onUpdate }) => {
                                 >
                                     {parsing ? 'Parsing...' : 'Parse'}
                                 </button>
+                            )}
+                        </div>
+
+                        <div className="mt-3">
+                            <label className="form-label">Or upload file:</label>
+                            <input
+                                type="file"
+                                className="form-control"
+                                accept=".json,.txt,.html"
+                                onChange={handleFileUpload}
+                                disabled={parsing || fetching}
+                            />
+                            {uploadedFile && (
+                                <div className="mt-2">
+                                    <small className="text-muted">
+                                        Uploaded: {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(1)} KB)
+                                    </small>
+                                    <button
+                                        className="btn btn-sm btn-outline-primary ms-2"
+                                        onClick={handleParseUploadedFile}
+                                        disabled={parsing || !inputData.trim()}
+                                    >
+                                        {parsing ? 'Parsing...' : 'Parse File'}
+                                    </button>
+                                </div>
                             )}
                         </div>
 

@@ -18,6 +18,7 @@ const TableFilter = ({
     filters,
     onFilterChange,
     onReset,
+    onAddJob,
 }) => {
     const [searchInput, setSearchInput] = useState(filters?.search || '')
     const debounceRef = useRef(null)
@@ -57,6 +58,16 @@ const TableFilter = ({
     return (
         <div className="d-flex gap-2 flex-wrap">
             {children}
+            
+            {onAddJob && (
+                <button
+                    className="btn btn-success btn-sm"
+                    onClick={onAddJob}
+                    title="Add new job manually"
+                >
+                    Add
+                </button>
+            )}
 
             <input
                 type="text"
