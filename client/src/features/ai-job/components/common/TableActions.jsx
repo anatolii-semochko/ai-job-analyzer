@@ -86,7 +86,14 @@ const TableActions = ({
                             disabled={isLoading}
                             title={isActive ? (config.titleActive || config.title) : config.title}
                         >
-                            {isLoading ? '...' : (isActive ? (config.labelActive || config.label) : config.label)}
+                            {isLoading ? (
+                                <span className="spinner-border spinner-border-sm"
+                                      style={{height: '13px', width: '13px'}}
+                                      role="status" aria-hidden="true"
+                                ></span>
+                            ) : (
+                                isActive ? (config.labelActive || config.label) : config.label
+                            )}
                         </button>
                     )
                 })}

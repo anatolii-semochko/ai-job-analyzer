@@ -113,7 +113,7 @@ export const RateOverall = ({ value }) => (
 )
 
 export const JobRateTable = ({ job }) => job.rate !== null && job.rate !== undefined && (
-    <table className="fs-6 mb-2">
+    <table className="fs-6 mb-2 w-100 rounded overflow-hidden">
         <tbody>
             {rateFields.map(f => (
                 <tr key={f.key} style={{ backgroundColor: getRateColor(job[f.key]) }}>
@@ -176,11 +176,11 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                 <div className="col-6">
                     <JobRateTable job={job} />
                     {job.href && (
-                        <div className="mb-2">
+                        <small className="mb-2">
                             <a href={job.href} target="_blank" rel="noopener noreferrer" className="text-primary text-break">
                                 {job.href}
                             </a>
-                        </div>
+                        </small>
                     )}
                 </div>
             </div>
