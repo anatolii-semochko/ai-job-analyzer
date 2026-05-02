@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { fetch as fetchJobs, remove, updateFlags } from '../service/jobService'
+import { fetch as fetchJobs, remove, updateFlags, getFilterOptions } from '../service/jobService'
 import Table from './common/Table'
 import TableFilter from './common/TableFilter'
 import { ACTION_TYPES } from './common/TableActions'
@@ -9,12 +9,38 @@ const Hidden = ({ onUpdate }) => {
     const [loading, setLoading] = useState(true)
     const [sortBy, setSortBy] = useState('dateAdd')
     const [sortOrder, setSortOrder] = useState('desc')
+    const [filterOptions, setFilterOptions] = useState(null)
+    const [filters, setFilters] = useState({ parser: '', country: '', company: '', search: '' })
 
     const loadJobs = async () => {
         setLoading(true)
         try {
+            const options = await getFilterOptions()
+            if (options) {
+                setFilterOptions(options)
+            }
+
             const data = await fetchJobs({ sortBy, sortOrder })
-            const filtered = data.filter(j => j.hidden || j.refused)
+            let filtered = data.filter(j => j.hidden || j.refused)
+
+            if (filters.parser) {
+                filtered = filtered.filter(j => j.parser === filters.parser)
+            }
+            if (filters.country) {
+                filtered = filtered.filter(j => j.country === filters.country)
+            }
+            if (filters.company) {
+                filtered = filtered.filter(j => j.company === filters.company)
+            }
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase()
+                filtered = filtered.filter(j => {
+                    const titleMatch = j.title?.toLowerCase().includes(searchLower)
+                    const descMatch = j.description?.toLowerCase().includes(searchLower)
+                    return titleMatch || descMatch
+                })
+            }
+
             setJobs(filtered)
         } catch (e) {
             console.error('Failed to load jobs:', e)
@@ -25,7 +51,15 @@ const Hidden = ({ onUpdate }) => {
 
     useEffect(() => {
         loadJobs()
-    }, [sortBy, sortOrder])
+    }, [sortBy, sortOrder, filters])
+
+    const handleFilterChange = (filterName, value) => {
+        setFilters(prev => ({ ...prev, [filterName]: value }))
+    }
+
+    const handleResetFilters = () => {
+        setFilters({ parser: '', country: '', company: '', search: '' })
+    }
 
     const handleAction = async (actionType, job) => {
         switch (actionType) {
@@ -67,6 +101,10 @@ const Hidden = ({ onUpdate }) => {
                     onSortByChange={setSortBy}
                     onSortOrderChange={setSortOrder}
                     onRefresh={loadJobs}
+                    filterOptions={filterOptions}
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onReset={handleResetFilters}
                 />
             </div>
 
