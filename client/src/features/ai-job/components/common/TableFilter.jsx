@@ -99,7 +99,7 @@ const TableFilter = ({
                     value={filters?.country || ''}
                     onChange={(e) => onFilterChange?.('country', e.target.value)}
                 >
-                    <option value="">All Countries</option>
+                    <option value="">All Locations</option>
                     {filterOptions.countries.map(c => (
                         <option key={c} value={c}>{c}</option>
                     ))}
