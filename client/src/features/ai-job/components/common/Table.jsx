@@ -45,9 +45,18 @@ const Table = ({
                     <React.Fragment key={job.hash}>
                         <tr>
                             <td>
-                                <strong>{job.title}</strong>
-                                <br />
-                                <span className="text-muted small">{job.parser}</span>
+                                <div className="d-flex align-items-center gap-1">
+                                    <div>
+                                        <strong>
+                                            {job.comments && job.comments.trim() && (
+                                                <span className="text-danger me-1" style={{ fontSize: '16px' }}>●</span>
+                                            )}
+                                            {job.title}
+                                        </strong>
+                                        <br />
+                                        <span className="text-muted small">{job.parser}</span>
+                                    </div>
+                                </div>
                             </td>
 
                             <td>
