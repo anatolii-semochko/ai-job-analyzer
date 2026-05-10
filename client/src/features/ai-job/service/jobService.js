@@ -140,6 +140,24 @@ export const saveComments = async (hash, comments) => {
     return { job: updatedJob, action: 'updated' }
 }
 
+export const saveMessages = async (hash, messages) => {
+    const db = await getDb()
+    const existingJob = await db.get(STORE_NAME, hash)
+
+    if (!existingJob) {
+        return { job: null, action: 'not_found' }
+    }
+
+    const updatedJob = {
+        ...existingJob,
+        dateUpdate: new Date().toISOString(),
+        messages,
+    }
+
+    await db.put(STORE_NAME, updatedJob)
+    return { job: updatedJob, action: 'updated' }
+}
+
 export const remove = async (hash) => {
     const db = await getDb()
     await db.delete(STORE_NAME, hash)

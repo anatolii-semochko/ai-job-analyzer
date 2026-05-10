@@ -88,8 +88,11 @@ const Table = ({
                                 <div className="d-flex align-items-center gap-1">
                                     <div>
                                         <strong>
-                                            {job.comments && job.comments.trim() && (
+                                            {job.messages && job.messages.length && (
                                                 <span className="text-danger me-1" style={{ fontSize: '16px' }}>●</span>
+                                            )}
+                                            {job.comments && job.comments.trim() && (
+                                                <span className="text-warning me-1" style={{ fontSize: '16px' }}>●</span>
                                             )}
                                             {job.title}
                                         </strong>
