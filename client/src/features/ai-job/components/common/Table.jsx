@@ -17,11 +17,32 @@ const Table = ({
     onJobUpdate,
     analyzingJob = null,
     emptyMessage = 'No jobs found',
+    selectedItems = [],
+    onSelectionChange,
 }) => {
     const [expandedJob, setExpandedJob] = useState(null)
 
     const toggleExpand = (hash) => {
         setExpandedJob(expandedJob === hash ? null : hash)
+    }
+
+    const isAllSelected = jobs.length > 0 && selectedItems.length > 0
+    const isIndeterminate = selectedItems.length > 0 && selectedItems.length < jobs.length
+
+    const handleMasterCheckbox = () => {
+        if (selectedItems.length > 0) {
+            onSelectionChange?.([])
+        } else {
+            const allHashes = jobs.map(job => job.hash)
+            onSelectionChange?.(allHashes)
+        }
+    }
+
+    const handleItemCheckbox = (hash) => {
+        const newSelection = selectedItems.includes(hash)
+            ? selectedItems.filter(h => h !== hash)
+            : [...selectedItems, hash]
+        onSelectionChange?.(newSelection)
     }
 
     if (jobs.length === 0) {
@@ -32,6 +53,17 @@ const Table = ({
         <table className="table table-hover table-sm" style={{ fontSize: '13px' }}>
             <thead className="table-light">
                 <tr>
+                    <th className="text-center" style={{ width: '30px' }}>
+                        <input
+                            type="checkbox"
+                            className="form-check-input m-0"
+                            checked={isAllSelected}
+                            ref={(el) => {
+                                if (el) el.indeterminate = isIndeterminate
+                            }}
+                            onChange={handleMasterCheckbox}
+                        />
+                    </th>
                     <th>Position</th>
                     <th>Company</th>
                     <th className="pe-3">Salary</th>
@@ -44,6 +76,14 @@ const Table = ({
                 {jobs.map((job) => (
                     <React.Fragment key={job.hash}>
                         <tr>
+                            <td className="text-center align-middle">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input m-0"
+                                    checked={selectedItems.includes(job.hash)}
+                                    onChange={() => handleItemCheckbox(job.hash)}
+                                />
+                            </td>
                             <td>
                                 <div className="d-flex align-items-center gap-1">
                                     <div>
@@ -99,7 +139,7 @@ const Table = ({
 
                         {expandedJob === job.hash && (
                             <tr>
-                                <td colSpan="6" className="bg-light ">
+                                <td colSpan="7" className="bg-light ">
                                     <JobDetails job={job} onJobUpdate={onJobUpdate} />
                                 </td>
                             </tr>

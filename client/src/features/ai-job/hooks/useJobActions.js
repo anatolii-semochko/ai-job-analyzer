@@ -3,7 +3,7 @@ import { remove, updateFlags, updateFilterOptions } from '../service/jobService'
 import { analyzeJob } from '../service/jobAi'
 import { ACTION_TYPES } from '../components/common/TableActions'
 
-export const useJobActions = (jobs, setJobs, onUpdate) => {
+export const useJobActions = (jobs, setJobs, onUpdate, onJobProcessed) => {
     const [analyzingJob, setAnalyzingJob] = useState(null)
     const [batchAnalyzing, setBatchAnalyzing] = useState(false)
     const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 })
@@ -16,6 +16,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                     const { success, job: updatedJob, error } = await analyzeJob(job)
                     if (success && updatedJob) {
                         setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))
+                        onJobProcessed?.(job.hash)
                     } else {
                         alert(`Analysis failed: ${error}`)
                     }
@@ -41,6 +42,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                             // Update in place
                             setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))
                         }
+                        onJobProcessed?.(job.hash)
                         onUpdate?.()
                     }
                 } catch (e) {
@@ -59,6 +61,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                             // Update in place
                             setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))
                         }
+                        onJobProcessed?.(job.hash)
                         onUpdate?.()
                     }
                 } catch (e) {
@@ -70,6 +73,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                 try {
                     await updateFlags(job.hash, { hidden: true })
                     setJobs(jobs.filter(j => j.hash !== job.hash))
+                    onJobProcessed?.(job.hash)
                     onUpdate?.()
                 } catch (e) {
                     console.error('Failed to hide job:', e)
@@ -80,6 +84,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                 try {
                     await updateFlags(job.hash, { hidden: false, refused: false })
                     setJobs(jobs.filter(j => j.hash !== job.hash))
+                    onJobProcessed?.(job.hash)
                     onUpdate?.()
                 } catch (e) {
                     console.error('Failed to restore job:', e)
@@ -92,6 +97,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                     await remove(job.hash)
                     setJobs(jobs.filter(j => j.hash !== job.hash))
                     await updateFilterOptions()
+                    onJobProcessed?.(job.hash)
                     onUpdate?.()
                 } catch (e) {
                     console.error('Failed to delete job:', e)
@@ -118,6 +124,7 @@ export const useJobActions = (jobs, setJobs, onUpdate) => {
                 if (success && analyzedJob) {
                     updatedJobs = updatedJobs.map(j => j.hash === analyzedJob.hash ? analyzedJob : j)
                     setJobs(updatedJobs)
+                    onJobProcessed?.(job.hash)
                 }
             } catch (e) {
                 console.error('Failed to analyze job:', job.title, e)

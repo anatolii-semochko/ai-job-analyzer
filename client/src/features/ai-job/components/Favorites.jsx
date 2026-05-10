@@ -2,7 +2,7 @@ import React from 'react'
 import JobList from './common/JobList'
 import { ACTION_TYPES } from './common/TableActions'
 
-const Favorites = ({ onUpdate }) => {
+const Favorites = ({ onUpdate, selectedItems, onSelectionChange }) => {
     const filterFn = (job) => job.favorite && !job.contacted && !job.hidden && !job.refused
 
     const actions = [
@@ -21,6 +21,9 @@ const Favorites = ({ onUpdate }) => {
             defaultSortOrder="desc"
             emptyMessage="No favorite jobs"
             onUpdate={onUpdate}
+            showBatchAnalyze={true}
+            selectedItems={selectedItems}
+            onSelectionChange={onSelectionChange}
         />
     )
 }

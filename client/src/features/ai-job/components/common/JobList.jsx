@@ -16,6 +16,8 @@ const JobList = ({
     onUpdate,
     showAddButton = false,
     showBatchAnalyze = false,
+    selectedItems = [],
+    onSelectionChange,
 }) => {
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
@@ -23,13 +25,17 @@ const JobList = ({
     const [sortOrder, setSortOrder] = useState(defaultSortOrder)
     const [showAddModal, setShowAddModal] = useState(false)
 
+    const handleJobProcessed = (jobHash) => {
+        onSelectionChange?.(prev => prev.filter(hash => hash !== jobHash))
+    }
+
     const {
         analyzingJob,
         batchAnalyzing,
         batchProgress,
         handleAction,
         handleBatchAnalyze,
-    } = useJobActions(jobs, setJobs, onUpdate)
+    } = useJobActions(jobs, setJobs, onUpdate, handleJobProcessed)
 
     const {
         filterOptions,
@@ -47,6 +53,7 @@ const JobList = ({
             let filtered = filterFn ? data.filter(filterFn) : data
             filtered = applyFilters(filtered)
             setJobs(filtered)
+            onSelectionChange?.(prev => prev.filter(hash => filtered.some(job => job.hash === hash)))
         } catch (e) {
             console.error('Failed to load jobs:', e)
         } finally {
@@ -59,6 +66,10 @@ const JobList = ({
     }, [sortBy, sortOrder, filters])
 
     const unanalyzedJobs = showBatchAnalyze ? jobs.filter(j => j.rate === null || j.rate === undefined) : []
+    const selectedJobs = jobs.filter(j => selectedItems.includes(j.hash))
+
+    const jobsToAnalyze = selectedItems.length > 0 ? selectedJobs : unanalyzedJobs
+    const shouldShowAnalyzeButton = showBatchAnalyze && jobsToAnalyze.length > 0
 
     const handleAddJob = () => {
         setShowAddModal(true)
@@ -86,16 +97,20 @@ const JobList = ({
                     onReset={handleResetFilters}
                     onAddJob={showAddButton ? handleAddJob : undefined}
                 >
-                    {showBatchAnalyze && unanalyzedJobs.length > 0 && (
+                    {shouldShowAnalyzeButton && (
                         <button
                             className="btn btn-primary btn-sm"
-                            onClick={() => handleBatchAnalyze(unanalyzedJobs)}
+                            onClick={() => handleBatchAnalyze(jobsToAnalyze)}
                             disabled={batchAnalyzing}
-                            title={`Analyze ${unanalyzedJobs.length} unanalyzed jobs`}
+                            title={selectedItems.length > 0
+                                ? `Analyze ${selectedJobs.length} selected jobs`
+                                : `Analyze ${unanalyzedJobs.length} unanalyzed jobs`}
                         >
                             {batchAnalyzing
                                 ? `Analyzing ${batchProgress.current}/${batchProgress.total}...`
-                                : `Analyze (${unanalyzedJobs.length})`
+                                : selectedItems.length > 0
+                                    ? `Analyze Selected (${selectedJobs.length})`
+                                    : `Analyze Raw (${unanalyzedJobs.length})`
                             }
                         </button>
                     )}
@@ -112,6 +127,8 @@ const JobList = ({
                     onJobUpdate={(updatedJob) => setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))}
                     analyzingJob={analyzingJob}
                     emptyMessage={emptyMessage}
+                    selectedItems={selectedItems}
+                    onSelectionChange={onSelectionChange}
                 />
             )}
 
