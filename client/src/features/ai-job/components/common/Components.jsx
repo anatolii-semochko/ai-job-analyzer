@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { saveComments, saveMessages } from '../../service/jobService'
+import { composeRequest } from '../../service/jobAi'
 import MessageModal from './MessageModal'
 import MessagesList from './MessagesList'
+import ComposedEmailModal from './ComposedEmailModal'
 
 export const getRateRowStyle = (rate) => {
     if (rate === null || rate === undefined) {
@@ -137,6 +139,10 @@ export const JobDetails = ({ job, onJobUpdate }) => {
     const [showMessageModal, setShowMessageModal] = useState(false)
     const [editingMessage, setEditingMessage] = useState(null)
     const [messagesHeight, setMessagesHeight] = useState(500)
+    const [showEmailModal, setShowEmailModal] = useState(false)
+    const [composedEmail, setComposedEmail] = useState(null)
+    const [composingEmail, setComposingEmail] = useState(false)
+    const [composeError, setComposeError] = useState(null)
     const descriptionRef = useRef(null)
 
     const handleSave = async () => {
@@ -205,6 +211,35 @@ export const JobDetails = ({ job, onJobUpdate }) => {
         }
     }, [job.description, job.messages])
 
+    const handleComposeRequest = async () => {
+        setComposingEmail(true)
+        setComposeError(null)
+        setComposedEmail(null)
+        setShowEmailModal(true)
+
+        try {
+            const { success, email, error } = await composeRequest(job)
+
+            if (success) {
+                setComposedEmail(email)
+            } else {
+                setComposeError(error || 'Failed to compose email')
+            }
+        } catch (e) {
+            console.error('Failed to compose request:', e)
+            setComposeError('Failed to compose email')
+        } finally {
+            setComposingEmail(false)
+        }
+    }
+
+    const handleCloseEmailModal = () => {
+        setShowEmailModal(false)
+        setComposedEmail(null)
+        setComposeError(null)
+        setComposingEmail(false)
+    }
+
 
     const hasChanges = comments !== (job.comments || '')
 
@@ -233,19 +268,34 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                     <JobRateTable job={job} />
                     {job.href && (
                         <div className="row mb-2">
-                            <div className="col-10">
+                            <div className="col-9">
                                 <small className="d-block">
                                     <a href={job.href} target="_blank" rel="noopener noreferrer" className="text-primary text-break">
                                         {job.href}
                                     </a>
                                 </small>
                             </div>
-                            <div className="col-2 d-flex justify-content-end">
+                            <div className="col-3 d-flex justify-content-end gap-1">
                                 <button
                                     className="btn btn-outline-primary btn-sm mt-1"
-                                    onClick={() => setShowMessageModal(true)}
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setShowMessageModal(true)
+                                    }}
                                 >
                                     Add Message
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm mt-1 ms-2"
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        handleComposeRequest()
+                                    }}
+                                    disabled={composingEmail}
+                                >
+                                    {composingEmail ? 'Composing...' : 'Compose Request'}
                                 </button>
                             </div>
                         </div>
@@ -280,6 +330,14 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                 onClose={handleModalClose}
                 onAddMessage={handleAddMessage}
                 editMessage={editingMessage}
+            />
+
+            <ComposedEmailModal
+                isOpen={showEmailModal}
+                onClose={handleCloseEmailModal}
+                email={composedEmail}
+                isLoading={composingEmail}
+                error={composeError}
             />
         </div>
     )
