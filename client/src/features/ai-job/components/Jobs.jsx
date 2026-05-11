@@ -7,6 +7,7 @@ const Jobs = ({ onUpdate, selectedItems, onSelectionChange }) => {
 
     const actions = [
         ACTION_TYPES.AI,
+        ACTION_TYPES.EDIT,
         ACTION_TYPES.FAVORITE,
         ACTION_TYPES.CONTACTED,
         ACTION_TYPES.HIDE,

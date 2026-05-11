@@ -24,9 +24,15 @@ const JobList = ({
     const [sortBy, setSortBy] = useState(defaultSortBy)
     const [sortOrder, setSortOrder] = useState(defaultSortOrder)
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingJob, setEditingJob] = useState(null)
 
     const handleJobProcessed = (jobHash) => {
         onSelectionChange?.(prev => prev.filter(hash => hash !== jobHash))
+    }
+
+    const handleEditJob = (job) => {
+        setEditingJob(job)
+        setShowAddModal(true)
     }
 
     const {
@@ -35,7 +41,7 @@ const JobList = ({
         batchProgress,
         handleAction,
         handleBatchAnalyze,
-    } = useJobActions(jobs, setJobs, onUpdate, handleJobProcessed)
+    } = useJobActions(jobs, setJobs, onUpdate, handleJobProcessed, handleEditJob)
 
     const {
         filterOptions,
@@ -72,7 +78,13 @@ const JobList = ({
     const shouldShowAnalyzeButton = showBatchAnalyze && jobsToAnalyze.length > 0
 
     const handleAddJob = () => {
+        setEditingJob(null)
         setShowAddModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowAddModal(false)
+        setEditingJob(null)
     }
 
     const handleJobAdded = async (newJob) => {
@@ -135,9 +147,10 @@ const JobList = ({
             {showAddButton && (
                 <AddJobModal
                     isOpen={showAddModal}
-                    onClose={() => setShowAddModal(false)}
+                    onClose={handleCloseModal}
                     onJobAdded={handleJobAdded}
                     filterOptions={filterOptions}
+                    editJob={editingJob}
                 />
             )}
         </div>

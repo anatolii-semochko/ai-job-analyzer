@@ -3,7 +3,7 @@ import { remove, updateFlags, updateFilterOptions } from '../service/jobService'
 import { analyzeJob } from '../service/jobAi'
 import { ACTION_TYPES } from '../components/common/TableActions'
 
-export const useJobActions = (jobs, setJobs, onUpdate, onJobProcessed) => {
+export const useJobActions = (jobs, setJobs, onUpdate, onJobProcessed, onEditJob) => {
     const [analyzingJob, setAnalyzingJob] = useState(null)
     const [batchAnalyzing, setBatchAnalyzing] = useState(false)
     const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 })
@@ -26,6 +26,10 @@ export const useJobActions = (jobs, setJobs, onUpdate, onJobProcessed) => {
                 } finally {
                     setAnalyzingJob(null)
                 }
+                break
+
+            case ACTION_TYPES.EDIT:
+                onEditJob?.(job)
                 break
 
             case ACTION_TYPES.FAVORITE:

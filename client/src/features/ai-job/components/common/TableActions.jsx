@@ -2,6 +2,7 @@ import React from 'react'
 
 export const ACTION_TYPES = {
     AI: 'ai',
+    EDIT: 'edit',
     FAVORITE: 'favorite',
     CONTACTED: 'contacted',
     HIDE: 'hide',
@@ -14,6 +15,11 @@ const actionConfig = {
         label: 'AI',
         className: 'btn-outline-primary',
         title: 'Analyze with AI',
+    },
+    [ACTION_TYPES.EDIT]: {
+        label: '✏️',
+        className: 'btn-outline-secondary',
+        title: 'Edit job',
     },
     [ACTION_TYPES.FAVORITE]: {
         label: '★',

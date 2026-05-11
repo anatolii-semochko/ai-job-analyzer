@@ -7,6 +7,7 @@ const Favorites = ({ onUpdate, selectedItems, onSelectionChange }) => {
 
     const actions = [
         ACTION_TYPES.AI,
+        ACTION_TYPES.EDIT,
         ACTION_TYPES.FAVORITE,
         ACTION_TYPES.CONTACTED,
         ACTION_TYPES.HIDE,
@@ -21,6 +22,7 @@ const Favorites = ({ onUpdate, selectedItems, onSelectionChange }) => {
             defaultSortOrder="desc"
             emptyMessage="No favorite jobs"
             onUpdate={onUpdate}
+            showAddButton={true}
             showBatchAnalyze={true}
             selectedItems={selectedItems}
             onSelectionChange={onSelectionChange}
