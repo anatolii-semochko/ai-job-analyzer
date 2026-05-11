@@ -3,7 +3,14 @@ import { getFilterOptions } from '../service/jobService'
 
 export const useJobFilters = () => {
     const [filterOptions, setFilterOptions] = useState(null)
-    const [filters, setFilters] = useState({ parser: '', country: '', company: '', search: '' })
+    const [filters, setFilters] = useState(() => {
+        try {
+            const saved = localStorage.getItem('aiJob_filters')
+            return saved ? JSON.parse(saved) : { parser: '', country: '', company: '', search: '' }
+        } catch (e) {
+            return { parser: '', country: '', company: '', search: '' }
+        }
+    })
 
     useEffect(() => {
         const loadFilterOptions = async () => {
@@ -18,6 +25,10 @@ export const useJobFilters = () => {
         }
         loadFilterOptions()
     }, [])
+
+    useEffect(() => {
+        localStorage.setItem('aiJob_filters', JSON.stringify(filters))
+    }, [filters])
 
     const handleFilterChange = (filterName, value) => {
         setFilters(prev => ({ ...prev, [filterName]: value }))

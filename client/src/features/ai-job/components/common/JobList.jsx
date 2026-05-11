@@ -21,8 +21,12 @@ const JobList = ({
 }) => {
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
-    const [sortBy, setSortBy] = useState(defaultSortBy)
-    const [sortOrder, setSortOrder] = useState(defaultSortOrder)
+    const [sortBy, setSortBy] = useState(() => {
+        return localStorage.getItem(`aiJob_${title}_sortBy`) || defaultSortBy
+    })
+    const [sortOrder, setSortOrder] = useState(() => {
+        return localStorage.getItem(`aiJob_${title}_sortOrder`) || defaultSortOrder
+    })
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingJob, setEditingJob] = useState(null)
 
@@ -68,8 +72,10 @@ const JobList = ({
     }
 
     useEffect(() => {
+        localStorage.setItem(`aiJob_${title}_sortBy`, sortBy)
+        localStorage.setItem(`aiJob_${title}_sortOrder`, sortOrder)
         loadJobs()
-    }, [sortBy, sortOrder, filters])
+    }, [sortBy, sortOrder, filters, title])
 
     const unanalyzedJobs = showBatchAnalyze ? jobs.filter(j => j.rate === null || j.rate === undefined) : []
     const selectedJobs = jobs.filter(j => selectedItems.includes(j.hash))

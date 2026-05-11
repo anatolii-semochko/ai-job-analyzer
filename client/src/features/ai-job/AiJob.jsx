@@ -17,7 +17,9 @@ const tabs = [
 ]
 
 const AiJob = () => {
-    const [activeTab, setActiveTab] = useState('jobs')
+    const [activeTab, setActiveTab] = useState(() => {
+        return localStorage.getItem('aiJob_activeTab') || 'jobs'
+    })
     const [stats, setStats] = useState({ jobs: 0, favorites: 0, contacted: 0, hidden: 0 })
     const [selectedItems, setSelectedItems] = useState([])
 
@@ -40,6 +42,7 @@ const AiJob = () => {
 
     useEffect(() => {
         setSelectedItems([])
+        localStorage.setItem('aiJob_activeTab', activeTab)
     }, [activeTab])
 
     const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component
