@@ -5,6 +5,9 @@ const sortOptions = [
     { value: 'datePublish', label: 'Date Published' },
     { value: 'rate', label: 'Rating' },
     { value: 'salary', label: 'Salary' },
+    { value: 'status', label: 'Status' },
+    { value: 'comments', label: 'Comments' },
+    { value: 'messages', label: 'Messages' },
 ]
 
 const TableFilter = ({

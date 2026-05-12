@@ -88,7 +88,7 @@ const MessageModal = ({ isOpen, onClose, onAddMessage, editMessage = null }) => 
                                     id="messageText"
                                     name="message.text"
                                     className="form-control"
-                                    rows="5"
+                                    rows="20"
                                     value={messageText}
                                     onChange={(e) => setMessageText(e.target.value)}
                                     placeholder="Enter your message..."

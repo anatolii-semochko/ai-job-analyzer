@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { JobDetails, RateLabels, RateOverall } from './Components'
 import TableActions from './TableActions'
+import JobStatus from './JobStatus'
 
 const getDaysAgo = (dateStr) => {
     if (!dateStr) return null
@@ -50,7 +51,11 @@ const Table = ({
     }
 
     return (
-        <table className="table table-hover table-sm" style={{ fontSize: '13px' }}>
+        <>
+            <style>
+                {`tr.row-muted td { color: #6c757d !important; }`}
+            </style>
+            <table className="table table-hover table-sm" style={{ fontSize: '13px' }}>
             <thead className="table-light">
                 <tr>
                     <th className="text-center" style={{ width: '30px' }}>
@@ -66,6 +71,7 @@ const Table = ({
                     </th>
                     <th>Position</th>
                     <th>Company</th>
+                    <th>Status</th>
                     <th className="pe-3">Salary</th>
                     <th>Rates</th>
                     <th>Score</th>
@@ -75,7 +81,7 @@ const Table = ({
             <tbody>
                 {jobs.map((job) => (
                     <React.Fragment key={job.hash}>
-                        <tr>
+                        <tr className={job.status === 'Deactivated' ? 'row-muted' : ''}>
                             <td className="text-center align-middle">
                                 <input
                                     type="checkbox"
@@ -98,6 +104,11 @@ const Table = ({
                                         </strong>
                                         <br />
                                         <span className="text-muted small">{job.parser}</span>
+                                        {job.comments && job.comments.trim() && (
+                                            <strong className="text-primary small ms-2">
+                                                {job.comments.split('\n')[0]}
+                                            </strong>
+                                        )}
                                     </div>
                                 </div>
                             </td>
@@ -106,6 +117,10 @@ const Table = ({
                                 <strong>{job.company || 'N/A'}</strong>
                                 <br />
                                 <span className="text-muted small">{job.country || 'N/A'}</span>
+                            </td>
+
+                            <td style={{ verticalAlign: 'middle' }}>
+                                <JobStatus job={job} onJobUpdate={onJobUpdate} />
                             </td>
 
                             <td>
@@ -142,15 +157,17 @@ const Table = ({
 
                         {expandedJob === job.hash && (
                             <tr>
-                                <td colSpan="7" className="bg-light ">
+                                <td colSpan="8" className="bg-light ">
                                     <JobDetails job={job} onJobUpdate={onJobUpdate} />
                                 </td>
                             </tr>
                         )}
                     </React.Fragment>
-                ))}
+                    )
+                )}
             </tbody>
         </table>
+        </>
     )
 }
 
