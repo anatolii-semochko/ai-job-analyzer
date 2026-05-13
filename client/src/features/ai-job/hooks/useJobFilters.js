@@ -55,7 +55,22 @@ export const useJobFilters = () => {
             filtered = filtered.filter(j => {
                 const titleMatch = j.title?.toLowerCase().includes(searchLower)
                 const descMatch = j.description?.toLowerCase().includes(searchLower)
-                return titleMatch || descMatch
+                const companyMatch = j.company?.toLowerCase().includes(searchLower)
+                const countryMatch = j.country?.toLowerCase().includes(searchLower)
+                const parserMatch = j.parser?.toLowerCase().includes(searchLower)
+                const statusMatch = j.status?.toLowerCase().includes(searchLower)
+                const salaryMatch = j.salary?.toString().toLowerCase().includes(searchLower)
+                const commentsMatch = j.comments?.toLowerCase().includes(searchLower)
+                const hrefMatch = j.href?.toLowerCase().includes(searchLower)
+
+                // Search in messages
+                const messagesMatch = j.messages?.some(msg =>
+                    msg.body?.toLowerCase().includes(searchLower)
+                ) || false
+
+                return titleMatch || descMatch || companyMatch || countryMatch ||
+                       parserMatch || statusMatch || salaryMatch || commentsMatch ||
+                       hrefMatch || messagesMatch
             })
         }
 
