@@ -1,4 +1,4 @@
-.PHONY: build up down restart logs install dev
+.PHONY: build up down restart rebuild logs install dev
 
 build:
 	docker compose build
@@ -11,6 +11,8 @@ down:
 
 restart:
 	docker compose down && docker compose up -d
+
+rebuild: build restart
 
 logs:
 	docker compose logs -f

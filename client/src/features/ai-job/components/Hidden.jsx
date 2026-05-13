@@ -2,10 +2,11 @@ import React from 'react'
 import JobList from './common/JobList'
 import { ACTION_TYPES } from './common/TableActions'
 
-const Hidden = ({ onUpdate }) => {
+const Hidden = ({ onUpdate, selectedItems, onSelectionChange }) => {
     const filterFn = (job) => job.hidden || job.refused
 
     const actions = [
+        ACTION_TYPES.EDIT,
         ACTION_TYPES.SHOW,
         ACTION_TYPES.REMOVE,
     ]
@@ -19,6 +20,9 @@ const Hidden = ({ onUpdate }) => {
             defaultSortOrder="desc"
             emptyMessage="No hidden jobs"
             onUpdate={onUpdate}
+            showAddButton={true}
+            selectedItems={selectedItems}
+            onSelectionChange={onSelectionChange}
         />
     )
 }

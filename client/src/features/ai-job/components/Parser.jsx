@@ -203,7 +203,13 @@ const Parser = ({ onUpdate }) => {
                             <select
                                 className="form-select"
                                 value={selectedParser}
-                                onChange={(e) => setSelectedParser(e.target.value)}
+                                onChange={(e) => {
+                                    setSelectedParser(e.target.value)
+                                    setJobs([])
+                                    setExpandedJobs({})
+                                    setError(null)
+                                    setSaveResult(null)
+                                }}
                             >
                                 {parsersList.map(p => (
                                     <option key={p.name} value={p.name}>
@@ -503,37 +509,77 @@ async function scrapeLinkedInJobs() {
 await scrapeLinkedInJobs();
 `
 
-const LinkedInScript = () => (
-    <div className="alert alert-info">
-        <h6 className="alert-heading">LinkedIn Parser Script</h6>
-        <p className="small mb-2">
-            Виконай цей скрипт в консолі браузера на сторінці LinkedIn Jobs:
-        </p>
-        <pre
-            className="bg-dark text-light p-2 rounded small"
-            style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
-        >
-            {linkedInScript}
-        </pre>
-        <p className="small mb-0 mt-2">
-            Після завантаження файлу <code>jobs_data.json</code>, вставте його вміст у поле зліва.
-        </p>
-    </div>
-)
+const LinkedInScript = () => {
+    const handleCopyScript = () => {
+        navigator.clipboard.writeText(linkedInScript).then(() => {
+            // Could add a toast notification here
+        }).catch(err => {
+            console.error('Failed to copy script: ', err)
+        })
+    }
 
-const DOUScript = () => (
-    <div className="alert alert-info">
-        <h6 className="alert-heading">DOU.ua Parser</h6>
-        <p className="small mb-2">
-            <strong>Спосіб 1 (рекомендовано):</strong> Встав URL сторінки з вакансіями, наприклад:
-        </p>
-        <pre className="bg-dark text-light p-2 rounded small mb-2" style={{ fontSize: '11px' }}>
-            https://jobs.dou.ua/vacancies/?category=Blockchain
-        </pre>
-        <p className="small mb-2">
-            <strong>Спосіб 2:</strong> Скопіюй HTML зі сторінки (Ctrl+A, Ctrl+C) і встав сюди.
-        </p>
-    </div>
-)
+    return (
+        <div className="alert alert-info">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="alert-heading mb-0">LinkedIn Parser Script</h6>
+                <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={handleCopyScript}
+                    title="Copy script to clipboard"
+                >
+                    📋 Copy Script
+                </button>
+            </div>
+            <p className="small mb-2">
+                Виконай цей скрипт в консолі браузера на сторінці LinkedIn Jobs:
+            </p>
+            <pre
+                className="bg-dark text-light p-2 rounded small"
+                style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
+            >
+                {linkedInScript}
+            </pre>
+            <p className="small mb-0 mt-2">
+                Після завантаження файлу <code>jobs_data.json</code>, вставте його вміст у поле зліва.
+            </p>
+        </div>
+    )
+}
+
+const DOUScript = () => {
+    const exampleUrl = "https://jobs.dou.ua/vacancies/?category=Blockchain"
+
+    const handleCopyUrl = () => {
+        navigator.clipboard.writeText(exampleUrl).then(() => {
+            // Could add a toast notification here
+        }).catch(err => {
+            console.error('Failed to copy URL: ', err)
+        })
+    }
+
+    return (
+        <div className="alert alert-info">
+            <h6 className="alert-heading">DOU.ua Parser</h6>
+            <p className="small mb-2">
+                <strong>Спосіб 1 (рекомендовано):</strong> Встав URL сторінки з вакансіями, наприклад:
+            </p>
+            <div className="d-flex align-items-center gap-2 mb-2">
+                <pre className="bg-dark text-light p-2 rounded small flex-grow-1 mb-0" style={{ fontSize: '11px' }}>
+                    {exampleUrl}
+                </pre>
+                <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={handleCopyUrl}
+                    title="Copy example URL to clipboard"
+                >
+                    📋 Copy
+                </button>
+            </div>
+            <p className="small mb-0">
+                <strong>Спосіб 2:</strong> Скопіюй HTML зі сторінки (Ctrl+A, Ctrl+C) і встав сюди.
+            </p>
+        </div>
+    )
+}
 
 export default Parser

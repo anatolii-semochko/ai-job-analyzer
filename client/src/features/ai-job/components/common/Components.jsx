@@ -1,5 +1,9 @@
-import React, { useState } from 'react'
-import { saveComments } from '../../service/jobService'
+import React, { useState, useRef, useEffect } from 'react'
+import { saveComments, saveMessages } from '../../service/jobService'
+import { composeRequest } from '../../service/jobAi'
+import MessageModal from './MessageModal'
+import MessagesList from './MessagesList'
+import ComposedEmailModal from './ComposedEmailModal'
 
 export const getRateRowStyle = (rate) => {
     if (rate === null || rate === undefined) {
@@ -132,6 +136,14 @@ export const JobDetails = ({ job, onJobUpdate }) => {
     const [comments, setComments] = useState(job.comments || '')
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
+    const [showMessageModal, setShowMessageModal] = useState(false)
+    const [editingMessage, setEditingMessage] = useState(null)
+    const [messagesHeight, setMessagesHeight] = useState(500)
+    const [showEmailModal, setShowEmailModal] = useState(false)
+    const [composedEmail, setComposedEmail] = useState(null)
+    const [composingEmail, setComposingEmail] = useState(false)
+    const [composeError, setComposeError] = useState(null)
+    const descriptionRef = useRef(null)
 
     const handleSave = async () => {
         setSaving(true)
@@ -149,6 +161,85 @@ export const JobDetails = ({ job, onJobUpdate }) => {
             setSaving(false)
         }
     }
+
+    const handleAddMessage = async (message, editMessage = null) => {
+        const currentMessages = job.messages || []
+
+        let updatedMessages
+        if (editMessage) {
+            updatedMessages = currentMessages.map(msg =>
+                msg.timestamp === editMessage.timestamp ? message : msg
+            )
+        } else {
+            updatedMessages = [...currentMessages, message]
+        }
+
+        const { job: updatedJob } = await saveMessages(job.hash, updatedMessages)
+        if (updatedJob) {
+            onJobUpdate?.(updatedJob)
+        }
+    }
+
+    const handleEditMessage = (message) => {
+        setEditingMessage(message)
+        setShowMessageModal(true)
+    }
+
+    const handleDeleteMessage = async (messageToDelete) => {
+        if (!confirm('Delete this message?')) return
+
+        const currentMessages = job.messages || []
+        const updatedMessages = currentMessages.filter(msg => msg.timestamp !== messageToDelete.timestamp)
+
+        const { job: updatedJob } = await saveMessages(job.hash, updatedMessages)
+        if (updatedJob) {
+            onJobUpdate?.(updatedJob)
+        }
+    }
+
+    const handleModalClose = () => {
+        setShowMessageModal(false)
+        setEditingMessage(null)
+    }
+
+    useEffect(() => {
+        if (descriptionRef.current && job.messages && job.messages.length > 0) {
+            const leftBlockHeight = descriptionRef.current.offsetHeight
+            // Максимальна висота 500px, але якщо лівий блок вищий - використовуємо його висоту
+            const maxHeight = Math.max(500, leftBlockHeight)
+            setMessagesHeight(maxHeight)
+        }
+    }, [job.description, job.messages])
+
+    const handleComposeRequest = async () => {
+        setComposingEmail(true)
+        setComposeError(null)
+        setComposedEmail(null)
+        setShowEmailModal(true)
+
+        try {
+            const { success, email, error } = await composeRequest(job)
+
+            if (success) {
+                setComposedEmail(email)
+            } else {
+                setComposeError(error || 'Failed to compose email')
+            }
+        } catch (e) {
+            console.error('Failed to compose request:', e)
+            setComposeError('Failed to compose email')
+        } finally {
+            setComposingEmail(false)
+        }
+    }
+
+    const handleCloseEmailModal = () => {
+        setShowEmailModal(false)
+        setComposedEmail(null)
+        setComposeError(null)
+        setComposingEmail(false)
+    }
+
 
     const hasChanges = comments !== (job.comments || '')
 
@@ -176,21 +267,78 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                 <div className="col-6">
                     <JobRateTable job={job} />
                     {job.href && (
-                        <small className="mb-2">
-                            <a href={job.href} target="_blank" rel="noopener noreferrer" className="text-primary text-break">
-                                {job.href}
-                            </a>
-                        </small>
+                        <div className="row mb-2">
+                            <div className="col-9">
+                                <small className="d-block">
+                                    <a href={job.href} target="_blank" rel="noopener noreferrer" className="text-primary text-break">
+                                        {job.href}
+                                    </a>
+                                </small>
+                            </div>
+                            <div className="col-3 d-flex justify-content-end gap-1">
+                                <button
+                                    className="btn btn-outline-primary btn-sm mt-1"
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setShowMessageModal(true)
+                                    }}
+                                >
+                                    Add Message
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm mt-1 ms-2"
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        handleComposeRequest()
+                                    }}
+                                    disabled={composingEmail}
+                                >
+                                    {composingEmail ? 'Composing...' : 'Compose Request'}
+                                </button>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
 
             {job.description && (
-                <div
-                    className="p-2 bg-light rounded small mt-2"
-                    dangerouslySetInnerHTML={{ __html: job.description }}
-                />
+                <div className={`row mt-2 ${job.messages && job.messages.length > 0 ? '' : ''}`}>
+                    <div className={job.messages && job.messages.length > 0 ? 'col-7' : 'col-12'}>
+                        <div
+                            ref={descriptionRef}
+                            className="p-2 bg-light rounded small"
+                            dangerouslySetInnerHTML={{ __html: job.description }}
+                        />
+                    </div>
+                    {job.messages && job.messages.length > 0 && (
+                        <div className="col-5">
+                            <MessagesList
+                                messages={job.messages}
+                                onEditMessage={handleEditMessage}
+                                onDeleteMessage={handleDeleteMessage}
+                                maxHeight={messagesHeight}
+                            />
+                        </div>
+                    )}
+                </div>
             )}
+
+            <MessageModal
+                isOpen={showMessageModal}
+                onClose={handleModalClose}
+                onAddMessage={handleAddMessage}
+                editMessage={editingMessage}
+            />
+
+            <ComposedEmailModal
+                isOpen={showEmailModal}
+                onClose={handleCloseEmailModal}
+                email={composedEmail}
+                isLoading={composingEmail}
+                error={composeError}
+            />
         </div>
     )
 }

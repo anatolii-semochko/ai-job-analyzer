@@ -3,7 +3,14 @@ import { getFilterOptions } from '../service/jobService'
 
 export const useJobFilters = () => {
     const [filterOptions, setFilterOptions] = useState(null)
-    const [filters, setFilters] = useState({ parser: '', country: '', company: '', search: '' })
+    const [filters, setFilters] = useState(() => {
+        try {
+            const saved = localStorage.getItem('aiJob_filters')
+            return saved ? JSON.parse(saved) : { parser: '', country: '', company: '', search: '' }
+        } catch (e) {
+            return { parser: '', country: '', company: '', search: '' }
+        }
+    })
 
     useEffect(() => {
         const loadFilterOptions = async () => {
@@ -18,6 +25,10 @@ export const useJobFilters = () => {
         }
         loadFilterOptions()
     }, [])
+
+    useEffect(() => {
+        localStorage.setItem('aiJob_filters', JSON.stringify(filters))
+    }, [filters])
 
     const handleFilterChange = (filterName, value) => {
         setFilters(prev => ({ ...prev, [filterName]: value }))
@@ -44,7 +55,22 @@ export const useJobFilters = () => {
             filtered = filtered.filter(j => {
                 const titleMatch = j.title?.toLowerCase().includes(searchLower)
                 const descMatch = j.description?.toLowerCase().includes(searchLower)
-                return titleMatch || descMatch
+                const companyMatch = j.company?.toLowerCase().includes(searchLower)
+                const countryMatch = j.country?.toLowerCase().includes(searchLower)
+                const parserMatch = j.parser?.toLowerCase().includes(searchLower)
+                const statusMatch = j.status?.toLowerCase().includes(searchLower)
+                const salaryMatch = j.salary?.toString().toLowerCase().includes(searchLower)
+                const commentsMatch = j.comments?.toLowerCase().includes(searchLower)
+                const hrefMatch = j.href?.toLowerCase().includes(searchLower)
+
+                // Search in messages
+                const messagesMatch = j.messages?.some(msg =>
+                    msg.body?.toLowerCase().includes(searchLower)
+                ) || false
+
+                return titleMatch || descMatch || companyMatch || countryMatch ||
+                       parserMatch || statusMatch || salaryMatch || commentsMatch ||
+                       hrefMatch || messagesMatch
             })
         }
 

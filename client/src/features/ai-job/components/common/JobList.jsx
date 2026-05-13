@@ -16,12 +16,28 @@ const JobList = ({
     onUpdate,
     showAddButton = false,
     showBatchAnalyze = false,
+    selectedItems = [],
+    onSelectionChange,
 }) => {
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
-    const [sortBy, setSortBy] = useState(defaultSortBy)
-    const [sortOrder, setSortOrder] = useState(defaultSortOrder)
+    const [sortBy, setSortBy] = useState(() => {
+        return localStorage.getItem(`aiJob_${title}_sortBy`) || defaultSortBy
+    })
+    const [sortOrder, setSortOrder] = useState(() => {
+        return localStorage.getItem(`aiJob_${title}_sortOrder`) || defaultSortOrder
+    })
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingJob, setEditingJob] = useState(null)
+
+    const handleJobProcessed = (jobHash) => {
+        onSelectionChange?.(prev => prev.filter(hash => hash !== jobHash))
+    }
+
+    const handleEditJob = (job) => {
+        setEditingJob(job)
+        setShowAddModal(true)
+    }
 
     const {
         analyzingJob,
@@ -29,7 +45,7 @@ const JobList = ({
         batchProgress,
         handleAction,
         handleBatchAnalyze,
-    } = useJobActions(jobs, setJobs, onUpdate)
+    } = useJobActions(jobs, setJobs, onUpdate, handleJobProcessed, handleEditJob)
 
     const {
         filterOptions,
@@ -47,6 +63,7 @@ const JobList = ({
             let filtered = filterFn ? data.filter(filterFn) : data
             filtered = applyFilters(filtered)
             setJobs(filtered)
+            onSelectionChange?.(prev => prev.filter(hash => filtered.some(job => job.hash === hash)))
         } catch (e) {
             console.error('Failed to load jobs:', e)
         } finally {
@@ -55,13 +72,25 @@ const JobList = ({
     }
 
     useEffect(() => {
+        localStorage.setItem(`aiJob_${title}_sortBy`, sortBy)
+        localStorage.setItem(`aiJob_${title}_sortOrder`, sortOrder)
         loadJobs()
-    }, [sortBy, sortOrder, filters])
+    }, [sortBy, sortOrder, filters, title])
 
     const unanalyzedJobs = showBatchAnalyze ? jobs.filter(j => j.rate === null || j.rate === undefined) : []
+    const selectedJobs = jobs.filter(j => selectedItems.includes(j.hash))
+
+    const jobsToAnalyze = selectedItems.length > 0 ? selectedJobs : unanalyzedJobs
+    const shouldShowAnalyzeButton = showBatchAnalyze && jobsToAnalyze.length > 0
 
     const handleAddJob = () => {
+        setEditingJob(null)
         setShowAddModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowAddModal(false)
+        setEditingJob(null)
     }
 
     const handleJobAdded = async (newJob) => {
@@ -86,16 +115,20 @@ const JobList = ({
                     onReset={handleResetFilters}
                     onAddJob={showAddButton ? handleAddJob : undefined}
                 >
-                    {showBatchAnalyze && unanalyzedJobs.length > 0 && (
+                    {shouldShowAnalyzeButton && (
                         <button
                             className="btn btn-primary btn-sm"
-                            onClick={() => handleBatchAnalyze(unanalyzedJobs)}
+                            onClick={() => handleBatchAnalyze(jobsToAnalyze)}
                             disabled={batchAnalyzing}
-                            title={`Analyze ${unanalyzedJobs.length} unanalyzed jobs`}
+                            title={selectedItems.length > 0
+                                ? `Analyze ${selectedJobs.length} selected jobs`
+                                : `Analyze ${unanalyzedJobs.length} unanalyzed jobs`}
                         >
                             {batchAnalyzing
                                 ? `Analyzing ${batchProgress.current}/${batchProgress.total}...`
-                                : `Analyze (${unanalyzedJobs.length})`
+                                : selectedItems.length > 0
+                                    ? `Analyze Selected (${selectedJobs.length})`
+                                    : `Analyze Raw (${unanalyzedJobs.length})`
                             }
                         </button>
                     )}
@@ -112,15 +145,18 @@ const JobList = ({
                     onJobUpdate={(updatedJob) => setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))}
                     analyzingJob={analyzingJob}
                     emptyMessage={emptyMessage}
+                    selectedItems={selectedItems}
+                    onSelectionChange={onSelectionChange}
                 />
             )}
 
             {showAddButton && (
                 <AddJobModal
                     isOpen={showAddModal}
-                    onClose={() => setShowAddModal(false)}
+                    onClose={handleCloseModal}
                     onJobAdded={handleJobAdded}
                     filterOptions={filterOptions}
+                    editJob={editingJob}
                 />
             )}
         </div>

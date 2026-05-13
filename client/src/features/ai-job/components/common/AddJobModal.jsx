@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { save } from '../../service/jobService'
 
-const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions }) => {
+const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions, editJob = null }) => {
     const [formData, setFormData] = useState({
         title: '',
         company: '',
@@ -20,23 +20,41 @@ const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions }) => {
 
     useEffect(() => {
         if (isOpen) {
-            setFormData({
-                title: '',
-                company: '',
-                newCompany: '',
-                useNewCompany: false,
-                parser: '',
-                newParser: '',
-                useNewParser: false,
-                country: '',
-                salary: '',
-                description: '',
-                href: ''
-            })
+            if (editJob) {
+                // Initialize form with edit data
+                setFormData({
+                    title: editJob.title || '',
+                    company: editJob.company || '',
+                    newCompany: '',
+                    useNewCompany: false,
+                    parser: editJob.parser || '',
+                    newParser: '',
+                    useNewParser: false,
+                    country: editJob.country || '',
+                    salary: String(editJob.salary || ''),
+                    description: editJob.description || '',
+                    href: editJob.href || ''
+                })
+            } else {
+                // Initialize with empty form for new job
+                setFormData({
+                    title: '',
+                    company: '',
+                    newCompany: '',
+                    useNewCompany: false,
+                    parser: '',
+                    newParser: '',
+                    useNewParser: false,
+                    country: '',
+                    salary: '',
+                    description: '',
+                    href: ''
+                })
+            }
             setError(null)
             setSaving(false)
         }
-    }, [isOpen])
+    }, [isOpen, editJob])
 
     const handleInputChange = (field, value) => {
         setFormData(prev => {
@@ -106,18 +124,22 @@ const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions }) => {
                 company: formData.useNewCompany ? formData.newCompany.trim() : formData.company,
                 parser: formData.useNewParser ? formData.newParser.trim() : formData.parser,
                 country: formData.country.trim() || 'Unknown',
-                salary: formData.salary.trim() || null,
+                salary: String(formData.salary || '').trim() || null,
                 description: formData.description.trim(),
                 href: formData.href.trim() || null,
             }
 
+            if (editJob) {
+                jobData.hash = editJob.hash
+            }
+
             const { job, action } = await save(jobData)
 
-            if (job && action === 'created') {
+            if (job && (action === 'created' || action === 'updated')) {
                 onJobAdded?.(job)
                 onClose()
             } else if (action === 'unchanged') {
-                setError('Job with this title and company already exists')
+                setError(editJob ? 'No changes detected' : 'Job with this title and company already exists')
             }
         } catch (e) {
             console.error('Failed to save job:', e)
@@ -137,7 +159,7 @@ const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions }) => {
             <div className="modal-dialog modal-lg">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">Add New Job</h5>
+                        <h5 className="modal-title">{editJob ? 'Edit Job' : 'Add New Job'}</h5>
                         <button
                             type="button"
                             className="btn-close"
@@ -290,7 +312,7 @@ const AddJobModal = ({ isOpen, onClose, onJobAdded, filterOptions }) => {
                                 className="btn btn-success"
                                 disabled={saving}
                             >
-                                {saving ? 'Saving...' : 'Save Job'}
+                                {saving ? 'Saving...' : editJob ? 'Update Job' : 'Save Job'}
                             </button>
                         </div>
                     </form>

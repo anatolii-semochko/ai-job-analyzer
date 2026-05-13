@@ -2,11 +2,12 @@ import React from 'react'
 import JobList from './common/JobList'
 import { ACTION_TYPES } from './common/TableActions'
 
-const Jobs = ({ onUpdate }) => {
+const Jobs = ({ onUpdate, selectedItems, onSelectionChange }) => {
     const filterFn = (job) => !job.favorite && !job.contacted && !job.hidden && !job.refused
 
     const actions = [
         ACTION_TYPES.AI,
+        ACTION_TYPES.EDIT,
         ACTION_TYPES.FAVORITE,
         ACTION_TYPES.CONTACTED,
         ACTION_TYPES.HIDE,
@@ -24,6 +25,8 @@ const Jobs = ({ onUpdate }) => {
             onUpdate={onUpdate}
             showAddButton={true}
             showBatchAnalyze={true}
+            selectedItems={selectedItems}
+            onSelectionChange={onSelectionChange}
         />
     )
 }

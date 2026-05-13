@@ -65,8 +65,28 @@ export const fetch = async (options = {}) => {
     const sortOrder = options.sortOrder || 'desc'
 
     jobs.sort((a, b) => {
-        const aVal = a[sortBy] ?? 0
-        const bVal = b[sortBy] ?? 0
+        let aVal = a[sortBy]
+        let bVal = b[sortBy]
+
+        // Special handling for messages - sort by count
+        if (sortBy === 'messages') {
+            aVal = Array.isArray(a.messages) ? a.messages.length : 0
+            bVal = Array.isArray(b.messages) ? b.messages.length : 0
+        }
+
+        // Handle null/undefined values
+        if (aVal == null) aVal = ''
+        if (bVal == null) bVal = ''
+
+        // For string comparison (like status, comments), use localeCompare
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+            const comparison = aVal.localeCompare(bVal)
+            return sortOrder === 'desc' ? -comparison : comparison
+        }
+
+        // For numeric comparison, use original logic
+        if (aVal == null || aVal === '') aVal = 0
+        if (bVal == null || bVal === '') bVal = 0
 
         if (sortOrder === 'desc') {
             return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
@@ -138,6 +158,43 @@ export const saveComments = async (hash, comments) => {
 
     await db.put(STORE_NAME, updatedJob)
     return { job: updatedJob, action: 'updated' }
+}
+
+export const saveMessages = async (hash, messages) => {
+    const db = await getDb()
+    const existingJob = await db.get(STORE_NAME, hash)
+
+    if (!existingJob) {
+        return { job: null, action: 'not_found' }
+    }
+
+    const updatedJob = {
+        ...existingJob,
+        dateUpdate: new Date().toISOString(),
+        messages,
+    }
+
+    await db.put(STORE_NAME, updatedJob)
+    return { job: updatedJob, action: 'updated' }
+}
+
+export const updateJobData = async (jobData) => {
+    const db = await getDb()
+    const hash = jobData.hash
+    const existingJob = await db.get(STORE_NAME, hash)
+
+    if (!existingJob) {
+        return { job: null, action: 'not_found' }
+    }
+
+    const updatedJob = {
+        ...existingJob,
+        ...jobData,
+        dateUpdate: new Date().toISOString(),
+    }
+
+    await db.put(STORE_NAME, updatedJob)
+    return updatedJob
 }
 
 export const remove = async (hash) => {
@@ -284,6 +341,7 @@ export default {
     saveRatings,
     saveComments,
     updateFlags,
+    updateJobData,
     fetch,
     remove,
     clear,
