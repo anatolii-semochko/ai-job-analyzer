@@ -1,29 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { exportDatabase, importJobs, getPrompt, savePrompt } from '../service/jobService'
+import React, { useState, useEffect } from 'react'
+import { exportDatabase, importJobs, getPrompt, savePrompt, getApplyPrompt, saveApplyPrompt } from '../service/jobService'
+import { PromptEditor, DataManager } from './common/Components'
 
 const Settings = ({ onUpdate }) => {
     const [prompt, setPrompt] = useState('')
     const [promptLoading, setPromptLoading] = useState(true)
     const [promptSaving, setPromptSaving] = useState(false)
     const [promptSaved, setPromptSaved] = useState(false)
+    const [applyPrompt, setApplyPrompt] = useState('')
+    const [applyPromptLoading, setApplyPromptLoading] = useState(true)
+    const [applyPromptSaving, setApplyPromptSaving] = useState(false)
+    const [applyPromptSaved, setApplyPromptSaved] = useState(false)
     const [exporting, setExporting] = useState(false)
     const [importing, setImporting] = useState(false)
     const [importResult, setImportResult] = useState(null)
     const [error, setError] = useState(null)
-    const fileInputRef = useRef(null)
 
     useEffect(() => {
-        const loadPrompt = async () => {
+        const loadPrompts = async () => {
             try {
-                const savedPrompt = await getPrompt()
+                const [savedPrompt, savedApplyPrompt] = await Promise.all([
+                    getPrompt(),
+                    getApplyPrompt()
+                ])
                 setPrompt(savedPrompt)
+                setApplyPrompt(savedApplyPrompt)
             } catch (e) {
-                console.error('Failed to load prompt:', e)
+                console.error('Failed to load prompts:', e)
             } finally {
                 setPromptLoading(false)
+                setApplyPromptLoading(false)
             }
         }
-        loadPrompt()
+        loadPrompts()
     }, [])
 
     const handleSavePrompt = async () => {
@@ -41,6 +50,33 @@ const Settings = ({ onUpdate }) => {
         } finally {
             setPromptSaving(false)
         }
+    }
+
+    const handleSaveApplyPrompt = async () => {
+        setApplyPromptSaving(true)
+        setApplyPromptSaved(false)
+        setError(null)
+
+        try {
+            await saveApplyPrompt(applyPrompt)
+            setApplyPromptSaved(true)
+            setTimeout(() => setApplyPromptSaved(false), 3000)
+        } catch (e) {
+            console.error('Failed to save apply prompt:', e)
+            setError(`Failed to save apply prompt: ${e.message}`)
+        } finally {
+            setApplyPromptSaving(false)
+        }
+    }
+
+    const handlePromptChange = (value) => {
+        setPrompt(value)
+        setPromptSaved(false)
+    }
+
+    const handleApplyPromptChange = (value) => {
+        setApplyPrompt(value)
+        setApplyPromptSaved(false)
     }
 
     const handleExport = async () => {
@@ -66,10 +102,6 @@ const Settings = ({ onUpdate }) => {
         } finally {
             setExporting(false)
         }
-    }
-
-    const handleImportClick = () => {
-        fileInputRef.current?.click()
     }
 
     const handleFileSelect = async (e) => {
@@ -98,107 +130,54 @@ const Settings = ({ onUpdate }) => {
             setError(`Import failed: ${e.message}`)
         } finally {
             setImporting(false)
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ''
-            }
+            // Clear file input
+            e.target.value = ''
         }
     }
 
     return (
         <div className="row">
             <div className="col-6">
-                <div className="card">
-                    <div className="card-header">
-                        <h5 className="mb-0">AI Prompt Settings</h5>
-                    </div>
-                    <div className="card-body">
-                        <div className="mb-3">
-                            <label className="form-label">Candidate Prompt</label>
-                            {promptLoading ? (
-                                <div className="text-muted">Loading...</div>
-                            ) : (
-                                <textarea
-                                    className="form-control"
-                                    rows={25}
-                                    value={prompt}
-                                    onChange={(e) => {
-                                        setPrompt(e.target.value)
-                                        setPromptSaved(false)
-                                    }}
-                                    placeholder="Enter your skills, experience, preferences..."
-                                    style={{ fontFamily: 'monospace', fontSize: '12px' }}
-                                />
-                            )}
-                            <div className="form-text">
-                                Your skills, experience, and job preferences. This text replaces {'{candidate_prompt}'} in the main analysis prompt.
-                            </div>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleSavePrompt}
-                                disabled={promptSaving || promptLoading}
-                            >
-                                {promptSaving ? 'Saving...' : 'Save Prompt'}
-                            </button>
-                            {promptSaved && (
-                                <span className="text-success">Saved!</span>
-                            )}
-                        </div>
-                    </div>
+                <PromptEditor
+                    title="AI Prompt Settings"
+                    label="Candidate Prompt"
+                    value={prompt}
+                    loading={promptLoading}
+                    saving={promptSaving}
+                    saved={promptSaved}
+                    onChange={handlePromptChange}
+                    onSave={handleSavePrompt}
+                    placeholder="Enter your skills, experience, preferences..."
+                    rows={25}
+                    helpText="Your skills, experience, and job preferences. This text replaces {candidate_prompt} in the main analysis prompt."
+                />
+
+                <div className="mt-3">
+                    <PromptEditor
+                        title="Apply Prompt Template"
+                        label="Apply Prompt"
+                        value={applyPrompt}
+                        loading={applyPromptLoading}
+                        saving={applyPromptSaving}
+                        saved={applyPromptSaved}
+                        onChange={handleApplyPromptChange}
+                        onSave={handleSaveApplyPrompt}
+                        placeholder="Hello [Company] Team,&#10;&#10;I would like to apply for the [Role] position..."
+                        rows={15}
+                        helpText="Your personal application template. Use [Company] and [Role] placeholders that will be replaced with actual values."
+                    />
                 </div>
             </div>
 
             <div className="col-6">
-                <div className="card">
-                    <div className="card-header">
-                        <h5 className="mb-0">Data Management</h5>
-                    </div>
-                    <div className="card-body">
-                        <p className="text-muted mb-3">
-                            Export or import your jobs database. Import will add new jobs and update existing ones without deleting.
-                        </p>
-
-                        <div className="d-flex gap-2 mb-3">
-                            <button
-                                className="btn btn-outline-primary"
-                                onClick={handleExport}
-                                disabled={exporting}
-                            >
-                                {exporting ? 'Exporting...' : 'Export Database'}
-                            </button>
-
-                            <button
-                                className="btn btn-outline-success"
-                                onClick={handleImportClick}
-                                disabled={importing}
-                            >
-                                {importing ? 'Importing...' : 'Import Jobs'}
-                            </button>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".json"
-                                style={{ display: 'none' }}
-                                onChange={handleFileSelect}
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="alert alert-danger mb-0">
-                                {error}
-                            </div>
-                        )}
-
-                        {importResult && (
-                            <div className="alert alert-success mb-0">
-                                Import complete: {importResult.imported} new, {importResult.updated} updated
-                                {importResult.skipped > 0 && `, ${importResult.skipped} skipped`}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <DataManager
+                    onExport={handleExport}
+                    onImport={handleFileSelect}
+                    exporting={exporting}
+                    importing={importing}
+                    error={error}
+                    importResult={importResult}
+                />
             </div>
         </div>
     )

@@ -1,6 +1,6 @@
 import { aiRun } from '@react/api/nodeApi'
-import { saveRatings, buildSystemPrompt, getPrompt } from './jobService'
-import promptComposeRequest from '@config/promptComposeRequest'
+import { saveRatings, buildSystemPrompt, getPrompt, getApplyPrompt } from './jobService'
+import promptApply from '@config/promptApply'
 
 const buildJobPrompt = (job, systemPrompt) => {
     const description = job.description
@@ -128,24 +128,41 @@ export const analyzeJobs = async (jobs, onProgress) => {
 }
 
 const buildComposeRequestPrompt = async (job) => {
-    const candidatePrompt = await getPrompt()
+    const [candidatePrompt, applyPrompt] = await Promise.all([
+        getPrompt(),
+        getApplyPrompt()
+    ])
 
     const description = job.description
         ? job.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').substring(0, 2000)
         : 'No description available'
 
-    const previousMessages = job.messages && job.messages.length > 0
-        ? job.messages.map(msg => `[${msg.type.toUpperCase()}] ${msg.text}`).join('\n\n')
-        : 'No previous correspondence.'
+    const jobDetails = `
+JOB DETAILS:
+- Title: ${job.title || 'Unknown'}
+- Company: ${job.company || 'Unknown'}
+- Country: ${job.country || 'Unknown'}
+- Salary: ${job.salary ? `$${job.salary}` : 'Not specified'}
+- Description: ${description}
+`
 
-    return promptComposeRequest
-        .replace('{candidate_prompt}', candidatePrompt || 'No candidate profile available')
-        .replace('{job_title}', job.title || 'Unknown')
-        .replace('{job_company}', job.company || 'Unknown')
-        .replace('{job_country}', job.country || 'Unknown')
-        .replace('{job_salary}', job.salary ? `$${job.salary}` : 'Not specified')
-        .replace('{job_description}', description)
-        .replace('{previous_messages}', previousMessages)
+    const candidateInfo = `
+CANDIDATE PROMPT:
+${candidatePrompt || 'No candidate profile available'}
+`
+
+    const templateInfo = `
+APPLY PROMPT TEMPLATE:
+${applyPrompt}
+`
+
+    return `${promptApply}
+
+${candidateInfo}
+
+${jobDetails}
+
+${templateInfo}`
 }
 
 const parseComposeResponse = (response) => {
