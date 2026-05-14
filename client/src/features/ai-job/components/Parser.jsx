@@ -2,6 +2,11 @@ import React, { useState } from 'react'
 import { parse, getParsersList, extractJobUrls, parseDetail, supportsDetailPages, parsers } from '../parser/parser'
 import { save, updateFilterOptions } from '../service/jobService'
 import { fetchUrl, fetchBatch } from '@react/api/nodeApi'
+import JobRightParser from './parser/JobRightParser'
+import LinkedInParser from './parser/LinkedInParser'
+import WorkUAParser from './parser/WorkUAParser'
+import DOUParser from './parser/DOUParser'
+import DjinniParser from './parser/DjinniParser'
 
 const Parser = ({ onUpdate }) => {
     const [selectedParser, setSelectedParser] = useState('dou')
@@ -17,6 +22,14 @@ const Parser = ({ onUpdate }) => {
     const [uploadedFile, setUploadedFile] = useState(null)
 
     const parsersList = getParsersList()
+
+    const parserComponents = {
+        jobright: JobRightParser,
+        linkedin: LinkedInParser,
+        workua: WorkUAParser,
+        dou: DOUParser,
+        djinni: DjinniParser
+    }
 
     const isUrl = inputData.trim().startsWith('http://') || inputData.trim().startsWith('https://')
 
@@ -312,13 +325,17 @@ const Parser = ({ onUpdate }) => {
                             </div>
                         )}
 
-                        {jobs.length === 0 && parsers[selectedParser]?.browserScript && (
-                            <ParserScript parser={parsers[selectedParser]} />
-                        )}
-
-                        {jobs.length === 0 && !parsers[selectedParser]?.browserScript && (
-                            <p className="text-muted">No jobs parsed yet</p>
-                        )}
+                        {jobs.length === 0 && (() => {
+                            const ParserComponent = parserComponents[selectedParser]
+                            return ParserComponent ? (
+                                <ParserComponent
+                                    parser={parsers[selectedParser]}
+                                    jobs={jobs}
+                                />
+                            ) : (
+                                <p className="text-muted">No jobs parsed yet</p>
+                            )
+                        })()}
 
                         {jobs.length > 0 && (
                             <div className="list-group">
@@ -361,43 +378,6 @@ const Parser = ({ onUpdate }) => {
                     </div>
                 </div>
             </div>
-        </div>
-    )
-}
-
-const ParserScript = ({ parser }) => {
-    const handleCopyScript = () => {
-        navigator.clipboard.writeText(parser.browserScript).then(() => {
-            // Could add a toast notification here
-        }).catch(err => {
-            console.error('Failed to copy script: ', err)
-        })
-    }
-
-    return (
-        <div className="alert alert-info">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="alert-heading mb-0">{parser.label} Parser Script</h6>
-                <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={handleCopyScript}
-                    title="Copy script to clipboard"
-                >
-                    📋 Copy Script
-                </button>
-            </div>
-            <p className="small mb-2">
-                Виконай цей скрипт в консолі браузера на відповідній сторінці:
-            </p>
-            <pre
-                className="bg-dark text-light p-2 rounded small"
-                style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
-            >
-                {parser.browserScript}
-            </pre>
-            <p className="small mb-0 mt-2">
-                Після виконання скрипта, скопіюй результат і встав у поле вводу зліва.
-            </p>
         </div>
     )
 }

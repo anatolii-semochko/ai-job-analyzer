@@ -1,6 +1,115 @@
 export const name = 'workua'
 export const label = 'Work.UA'
 
+export const browserScript = `async function scrapeWorkUaJobs() {
+    console.log('🚀 Початок парсингу Work.ua');
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const results = [];
+
+    function parseJobCard(card) {
+        try {
+            const titleLink = card.querySelector('h2 a');
+            if (!titleLink) return null;
+
+            const title = titleLink.textContent.trim();
+            const href = titleLink.href;
+            const itemId = href.match(/\\/jobs\\/(\\d+)\\//)?.[1] || null;
+
+            const salaryEl = card.querySelector('p span.tw-font-semibold');
+            const salary = salaryEl ? salaryEl.textContent.trim() : '';
+
+            const companyEl = card.querySelector('span.tw-font-semibold');
+            const company = companyEl ? companyEl.textContent.trim() : '';
+
+            const locationEl = card.querySelector('p:nth-of-type(3)');
+            const location = locationEl ? locationEl.textContent.replace(company, '').trim() : '';
+
+            const dateEl = card.querySelector('time');
+            const datePublish = dateEl ? dateEl.textContent.trim() : '';
+
+            const descEl = card.querySelector('p.tw-break-words');
+            const description = descEl ? descEl.textContent.trim() : '';
+
+            return {
+                title,
+                company,
+                location,
+                salary,
+                datePublish,
+                description,
+                href,
+                itemId
+            };
+        } catch (e) {
+            console.error('Помилка парсингу картки:', e);
+            return null;
+        }
+    }
+
+    async function fetchJobDetails(job) {
+        try {
+            console.log('Завантажую деталі для: ' + job.title);
+
+            const response = await fetch(job.href);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const descriptionEl = doc.querySelector('.card-text, .job-description, [class*="description"]');
+            const fullDescription = descriptionEl ? descriptionEl.innerHTML : job.description;
+
+            return {
+                ...job,
+                description: fullDescription
+            };
+        } catch (e) {
+            console.error('Помилка завантаження деталей для ' + job.href + ':', e);
+            return job;
+        }
+    }
+
+    const jobCards = document.querySelectorAll('[id^="job-"]');
+    console.log('Знайдено ' + jobCards.length + ' карток вакансій');
+
+    for (let i = 0; i < jobCards.length; i++) {
+        const card = jobCards[i];
+        const job = parseJobCard(card);
+
+        if (job) {
+            console.log('Парсинг ' + (i + 1) + '/' + jobCards.length + ': ' + job.title);
+
+            const detailedJob = await fetchJobDetails(job);
+            results.push(detailedJob);
+
+            if (i < jobCards.length - 1) {
+                await sleep(1000 + Math.random() * 2000);
+            }
+        }
+    }
+
+    console.log('✅ Завершено. Знайдено ' + results.length + ' вакансій');
+
+    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'workua-jobs-' + new Date().toISOString().split('T')[0] + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log('📁 Файл збережено!');
+    return results;
+}
+
+await scrapeWorkUaJobs();`
+
 const parseSalary = (text) => {
     if (!text) return null
 
@@ -155,4 +264,5 @@ export default {
     label,
     parse,
     validate,
+    browserScript,
 }
