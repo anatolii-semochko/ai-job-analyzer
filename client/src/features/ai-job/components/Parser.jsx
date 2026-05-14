@@ -320,7 +320,11 @@ const Parser = ({ onUpdate }) => {
                             <DOUScript />
                         )}
 
-                        {jobs.length === 0 && !['linkedin', 'dou'].includes(selectedParser) && (
+                        {selectedParser === 'workua' && jobs.length === 0 && (
+                            <WorkuaScript />
+                        )}
+
+                        {jobs.length === 0 && !['linkedin', 'dou', 'workua'].includes(selectedParser) && (
                             <p className="text-muted">No jobs parsed yet</p>
                         )}
 
@@ -577,6 +581,167 @@ const DOUScript = () => {
             </div>
             <p className="small mb-0">
                 <strong>Спосіб 2:</strong> Скопіюй HTML зі сторінки (Ctrl+A, Ctrl+C) і встав сюди.
+            </p>
+        </div>
+    )
+}
+
+const workuaScript = `
+async function scrapeWorkUaJobs() {
+    console.log('🚀 Початок парсингу Work.ua');
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const results = [];
+
+    function parseJobCard(card) {
+        try {
+            const titleLink = card.querySelector('h2 a');
+            if (!titleLink) return null;
+
+            const title = titleLink.textContent.trim();
+            const href = titleLink.href;
+            const itemId = href.match(/\\/jobs\\/(\\\\d+)\\//)?.[1] || null;
+
+            const salaryEl = card.querySelector('p span.tw-font-semibold');
+            const salary = salaryEl ? salaryEl.textContent.trim() : '';
+
+            const companyEl = card.querySelector('span.tw-font-semibold');
+            const company = companyEl ? companyEl.textContent.trim() : '';
+
+            const locationEl = card.querySelector('p:nth-of-type(3)');
+            const location = locationEl ? locationEl.textContent.replace(company, '').trim() : '';
+
+            const dateEl = card.querySelector('time');
+            const datePublish = dateEl ? dateEl.textContent.trim() : '';
+
+            const descEl = card.querySelector('p.tw-break-words');
+            const description = descEl ? descEl.textContent.trim() : '';
+
+            return {
+                title,
+                company,
+                location,
+                salary,
+                datePublish,
+                description,
+                href,
+                itemId
+            };
+        } catch (e) {
+            console.error('Помилка парсингу картки:', e);
+            return null;
+        }
+    }
+
+    async function fetchJobDetails(job) {
+        try {
+            console.log('Завантажую деталі для: ' + job.title);
+
+            const response = await fetch(job.href);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const descriptionEl = doc.querySelector('.card-text, .job-description, [class*="description"]');
+            const fullDescription = descriptionEl ? descriptionEl.innerHTML : job.description;
+
+            return {
+                ...job,
+                description: fullDescription
+            };
+        } catch (e) {
+            console.error('Помилка завантаження деталей для ' + job.href + ':', e);
+            return job;
+        }
+    }
+
+    const jobCards = document.querySelectorAll('[id^="job-"]');
+    console.log('Знайдено ' + jobCards.length + ' карток вакансій');
+
+    for (let i = 0; i < jobCards.length; i++) {
+        const card = jobCards[i];
+        const job = parseJobCard(card);
+
+        if (job) {
+            console.log('Парсинг ' + (i + 1) + '/' + jobCards.length + ': ' + job.title);
+
+            const detailedJob = await fetchJobDetails(job);
+            results.push(detailedJob);
+
+            if (i < jobCards.length - 1) {
+                await sleep(1000 + Math.random() * 2000);
+            }
+        }
+    }
+
+    console.log('✅ Завершено. Знайдено ' + results.length + ' вакансій');
+
+    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'workua-jobs-' + new Date().toISOString().split('T')[0] + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log('📁 Файл збережено!');
+    return results;
+}
+
+await scrapeWorkUaJobs();
+`
+
+const WorkuaScript = () => {
+    const handleCopyScript = () => {
+        navigator.clipboard.writeText(workuaScript).then(() => {
+            // Could add a toast notification here
+        }).catch(err => {
+            console.error('Failed to copy script: ', err)
+        })
+    }
+
+    return (
+        <div className="alert alert-info">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="alert-heading mb-0">Work.UA Parser Script</h6>
+                <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={handleCopyScript}
+                    title="Copy script to clipboard"
+                >
+                    📋 Copy Script
+                </button>
+            </div>
+            <p className="small mb-2">
+                Виконай цей скрипт в консолі браузера на сторінці Work.ua з вакансіями:
+            </p>
+            <div className="d-flex align-items-center gap-2 mb-2">
+                <pre className="bg-dark text-light p-2 rounded small flex-grow-1 mb-0" style={{ fontSize: '11px' }}>
+                    https://www.work.ua/jobseeker/my/personal-feed/
+                </pre>
+                <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => navigator.clipboard.writeText('https://www.work.ua/jobseeker/my/personal-feed/')}
+                    title="Copy URL to clipboard"
+                >
+                    📋 Copy
+                </button>
+            </div>
+            <pre
+                className="bg-dark text-light p-2 rounded small"
+                style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
+            >
+                {workuaScript}
+            </pre>
+            <p className="small mb-0 mt-2">
+                Скрипт автоматично завантажить деталі всіх вакансій та створить JSON файл для завантаження.
+                Після завантаження файлу, скопіюй його вміст і встав у поле вводу вище.
             </p>
         </div>
     )

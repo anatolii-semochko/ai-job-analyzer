@@ -1,11 +1,13 @@
 import douParser from './sources/dou'
 import linkedinParser from './sources/linkedin'
 import djinniParser from './sources/djinni'
+import workuaParser from './sources/workua'
 
 export const parsers = {
     dou: douParser,
     linkedin: linkedinParser,
     djinni: djinniParser,
+    workua: workuaParser,
 }
 
 export const getParsersList = () => {
