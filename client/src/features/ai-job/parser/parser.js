@@ -2,12 +2,14 @@ import douParser from './sources/dou'
 import linkedinParser from './sources/linkedin'
 import djinniParser from './sources/djinni'
 import workuaParser from './sources/workua'
+import jobrightParser from './sources/jobright'
 
 export const parsers = {
     dou: douParser,
     linkedin: linkedinParser,
     djinni: djinniParser,
     workua: workuaParser,
+    jobright: jobrightParser,
 }
 
 export const getParsersList = () => {
@@ -17,7 +19,7 @@ export const getParsersList = () => {
     }))
 }
 
-export const parse = (parserName, data) => {
+export const parse = async (parserName, data) => {
     const parser = parsers[parserName]
 
     if (!parser) {
@@ -29,7 +31,7 @@ export const parse = (parserName, data) => {
     }
 
     try {
-        return parser.parse(data)
+        return await parser.parse(data)
     } catch (e) {
         console.error(`Parser "${parserName}" error:`, e)
         throw new Error(`Failed to parse data with "${parserName}": ${e.message}`)

@@ -4,6 +4,8 @@ const allowedDomains = [
     'djinni.co',
     'www.linkedin.com',
     'linkedin.com',
+    'jobright.ai',
+    'www.jobright.ai',
 ]
 
 const validateUrl = (url) => {
