@@ -204,14 +204,14 @@ const Parser = ({ onUpdate }) => {
     }
 
     return (
-        <div className="row">
-            <div className="col-6">
-                <div className="card">
-                    <div className="card-header">
+        <div className="row h-100">
+            <div className="col-6 d-flex flex-column">
+                <div className="card h-100 d-flex flex-column">
+                    <div className="card-header flex-shrink-0">
                         <h5 className="mb-0">Input Data</h5>
                     </div>
-                    <div className="card-body">
-                        <div className="mb-3">
+                    <div className="card-body flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
+                        <div className="mb-3 flex-shrink-0">
                             <label className="form-label">Parser</label>
                             <select
                                 className="form-select"
@@ -232,19 +232,24 @@ const Parser = ({ onUpdate }) => {
                             </select>
                         </div>
 
-                        <div className="mb-3">
+                        <div className="mb-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
                             <label className="form-label">URL / HTML / JSON</label>
                             <textarea
-                                className="form-control"
-                                rows={15}
+                                className="form-control flex-grow-1"
                                 value={inputData}
                                 onChange={(e) => setInputData(e.target.value)}
                                 placeholder="Paste URL, HTML or JSON data here..."
-                                style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                                style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: '12px',
+                                    minHeight: '200px',
+                                    resize: 'none',
+                                    overflowX: 'hidden'
+                                }}
                             />
                         </div>
 
-                        <div className="d-flex gap-2">
+                        <div className="d-flex gap-2 mb-3 flex-shrink-0">
                             {isUrl ? (
                                 <button
                                     className="btn btn-primary w-100"
@@ -270,7 +275,7 @@ const Parser = ({ onUpdate }) => {
                             )}
                         </div>
 
-                        <div className="mt-3">
+                        <div className="flex-shrink-0">
                             <label className="form-label">Or upload file:</label>
                             <input
                                 type="file"
@@ -296,7 +301,7 @@ const Parser = ({ onUpdate }) => {
                         </div>
 
                         {error && (
-                            <div className="alert alert-danger mt-3 mb-0">
+                            <div className="alert alert-danger mt-3 mb-0 flex-shrink-0">
                                 {error}
                             </div>
                         )}
@@ -304,9 +309,9 @@ const Parser = ({ onUpdate }) => {
                 </div>
             </div>
 
-            <div className="col-6">
-                <div className="card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="col-6 d-flex flex-column">
+                <div className="card h-100 d-flex flex-column">
+                    <div className="card-header d-flex justify-content-between align-items-center flex-shrink-0">
                         <h5 className="mb-0">Parsed Jobs ({jobs.length})</h5>
                         {jobs.length > 0 && (
                             <button
@@ -318,9 +323,9 @@ const Parser = ({ onUpdate }) => {
                             </button>
                         )}
                     </div>
-                    <div className="card-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                    <div className="card-body flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden auto' }}>
                         {saveResult && (
-                            <div className="alert alert-success mb-3">
+                            <div className="alert alert-success mb-3 flex-shrink-0">
                                 Saved: {saveResult.created} created, {saveResult.updated} updated, {saveResult.unchanged} unchanged
                             </div>
                         )}

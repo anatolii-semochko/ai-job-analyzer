@@ -136,23 +136,25 @@ const Settings = ({ onUpdate }) => {
     }
 
     return (
-        <div className="row">
-            <div className="col-6">
-                <PromptEditor
-                    title="AI Prompt Settings"
-                    label="Candidate Prompt"
-                    value={prompt}
-                    loading={promptLoading}
-                    saving={promptSaving}
-                    saved={promptSaved}
-                    onChange={handlePromptChange}
-                    onSave={handleSavePrompt}
-                    placeholder="Enter your skills, experience, preferences..."
-                    rows={25}
-                    helpText="Your skills, experience, and job preferences. This text replaces {candidate_prompt} in the main analysis prompt."
-                />
+        <div className="row h-100">
+            <div className="col-6 d-flex flex-column">
+                <div className="flex-shrink-0">
+                    <PromptEditor
+                        title="AI Prompt Settings"
+                        label="Candidate Prompt"
+                        value={prompt}
+                        loading={promptLoading}
+                        saving={promptSaving}
+                        saved={promptSaved}
+                        onChange={handlePromptChange}
+                        onSave={handleSavePrompt}
+                        placeholder="Enter your skills, experience, preferences..."
+                        rows={20}
+                        helpText="Your skills, experience, and job preferences. This text replaces {candidate_prompt} in the main analysis prompt."
+                    />
+                </div>
 
-                <div className="mt-3">
+                <div className="mt-3 flex-grow-1">
                     <PromptEditor
                         title="Apply Prompt Template"
                         label="Apply Prompt"
@@ -163,21 +165,23 @@ const Settings = ({ onUpdate }) => {
                         onChange={handleApplyPromptChange}
                         onSave={handleSaveApplyPrompt}
                         placeholder="Hello [Company] Team,&#10;&#10;I would like to apply for the [Role] position..."
-                        rows={15}
+                        rows={12}
                         helpText="Your personal application template. Use [Company] and [Role] placeholders that will be replaced with actual values."
                     />
                 </div>
             </div>
 
             <div className="col-6">
-                <DataManager
-                    onExport={handleExport}
-                    onImport={handleFileSelect}
-                    exporting={exporting}
-                    importing={importing}
-                    error={error}
-                    importResult={importResult}
-                />
+                <div className="h-100">
+                    <DataManager
+                        onExport={handleExport}
+                        onImport={handleFileSelect}
+                        exporting={exporting}
+                        importing={importing}
+                        error={error}
+                        importResult={importResult}
+                    />
+                </div>
             </div>
         </div>
     )

@@ -6,7 +6,8 @@ const STATUS_OPTIONS = {
     'Observing': { color: '#007bff', bg: '#d1ecf1' },
     'Requested': { color: '#fd7e14', bg: '#ffeaa7' },
     'Waiting answer': { color: '#6f42c1', bg: '#e7d6f7' },
-    'Negotiations': { color: '#ff0000', bg: '#7afa00' },
+    'Negotiations': { color: '#3945ed', bg: '#7afa00' },
+    'Interview': { color: '#ff0000', bg: '#7afa00' },
     'Deactivated': { color: '#6c757d', bg: '#e9ecef' },
     'Refused': { color: '#dc3545', bg: '#f8d7da' }
 }

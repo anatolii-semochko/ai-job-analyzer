@@ -100,8 +100,8 @@ const JobList = ({
     }
 
     return (
-        <div>
-            <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex flex-column h-100">
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
                 <h5 className="mb-0">{title} ({jobs.length})</h5>
                 <TableFilter
                     sortBy={sortBy}
@@ -135,20 +135,22 @@ const JobList = ({
                 </TableFilter>
             </div>
 
-            {loading ? (
-                <p className="text-muted">Loading...</p>
-            ) : (
-                <Table
-                    jobs={jobs}
-                    actions={actions}
-                    onAction={handleAction}
-                    onJobUpdate={(updatedJob) => setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))}
-                    analyzingJob={analyzingJob}
-                    emptyMessage={emptyMessage}
-                    selectedItems={selectedItems}
-                    onSelectionChange={onSelectionChange}
-                />
-            )}
+            <div className="flex-grow-1" style={{ minHeight: 0 }}>
+                {loading ? (
+                    <p className="text-muted">Loading...</p>
+                ) : (
+                    <Table
+                        jobs={jobs}
+                        actions={actions}
+                        onAction={handleAction}
+                        onJobUpdate={(updatedJob) => setJobs(jobs.map(j => j.hash === updatedJob.hash ? updatedJob : j))}
+                        analyzingJob={analyzingJob}
+                        emptyMessage={emptyMessage}
+                        selectedItems={selectedItems}
+                        onSelectionChange={onSelectionChange}
+                    />
+                )}
+            </div>
 
             {showAddButton && (
                 <AddJobModal
