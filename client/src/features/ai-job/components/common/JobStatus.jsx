@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { updateJobData } from '../../service/jobService'
+import { getDaysAgo } from '../../utils/dateUtils'
 
 const STATUS_OPTIONS = {
     'Interesting': { color: '#28a745', bg: '#d4edda' },
@@ -18,7 +19,12 @@ const JobStatus = ({ job, onJobUpdate }) => {
 
     const handleStatusChange = async (newStatus) => {
         try {
-            const updatedJob = await updateJobData({ ...job, status: newStatus })
+            const now = new Date().toISOString().split('T')[0] // Дата без часу (YYYY-MM-DD)
+            const updatedJob = await updateJobData({
+                ...job,
+                status: newStatus,
+                statusDate: now
+            })
             setCurrentStatus(newStatus)
             onJobUpdate?.(updatedJob)
             setIsEditing(false)
@@ -50,24 +56,34 @@ const JobStatus = ({ job, onJobUpdate }) => {
     }
 
     const statusConfig = currentStatus ? STATUS_OPTIONS[currentStatus] : null
+    const daysAgo = getDaysAgo(job.statusDate)
 
     return (
-        <span
+        <div
             onClick={() => setIsEditing(true)}
-            style={{
-                cursor: 'pointer',
-                padding: '2px 6px',
-                borderRadius: '3px',
-                fontSize: '11px',
-                fontWeight: '500',
-                color: statusConfig?.color || '#6c757d',
-                backgroundColor: statusConfig?.bg || 'transparent',
-                border: statusConfig ? `1px solid ${statusConfig.color}30` : '1px solid transparent'
-            }}
+            style={{cursor: 'pointer'}}
             title="Click to change status"
         >
-            {currentStatus || '–'}
-        </span>
+            <span
+                style={{
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                    fontSize: '11px',
+                    fontWeight: '500',
+                    color: statusConfig?.color || '#6c757d',
+                    backgroundColor: statusConfig?.bg || 'transparent',
+                    border: statusConfig ? `1px solid ${statusConfig.color}30` : '1px solid transparent'
+                }}
+            >
+                {currentStatus || '–'}
+            </span>
+            <br/>
+            {daysAgo !== null && currentStatus && (
+                <small style={{ color: '#6c757d', fontSize: '9px', marginTop: '1px' }}>
+                    {daysAgo === 0 ? 'today' : `${daysAgo}d`}
+                </small>
+            )}
+        </div>
     )
 }
 

@@ -2,14 +2,7 @@ import React, { useState } from 'react'
 import { JobDetails, RateLabels, RateOverall } from './Components'
 import TableActions from './TableActions'
 import JobStatus from './JobStatus'
-
-const getDaysAgo = (dateStr) => {
-    if (!dateStr) return null
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24))
-    return diff
-}
+import { getDaysAgo } from '../../utils/dateUtils'
 
 const Table = ({
     jobs = [],

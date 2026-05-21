@@ -6,6 +6,7 @@ const sortOptions = [
     { value: 'rate', label: 'Rating' },
     { value: 'salary', label: 'Salary' },
     { value: 'status', label: 'Status' },
+    { value: 'statusDate', label: 'Status Date' },
     { value: 'comments', label: 'Comments' },
     { value: 'messages', label: 'Messages' },
 ]

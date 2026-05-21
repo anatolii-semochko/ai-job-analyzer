@@ -4,7 +4,7 @@ import promptDefault from '@config/promptDefault'
 import promptMain from '@config/promptMain'
 
 const DB_NAME = 'ai-job-db'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const STORE_NAME = 'jobs'
 const FILTERS_STORE_NAME = 'filters'
 const PROMPT_KEY = 'candidate_prompt'
@@ -23,6 +23,10 @@ const getDb = async () => {
                 if (!db.objectStoreNames.contains(FILTERS_STORE_NAME)) {
                     db.createObjectStore(FILTERS_STORE_NAME, { keyPath: 'key' })
                 }
+            }
+            if (oldVersion < 3) {
+                // Додано поля status і statusDate в версії 3
+                // IndexedDB автоматично підтримує нові поля в об'єктах
             }
         },
     })
