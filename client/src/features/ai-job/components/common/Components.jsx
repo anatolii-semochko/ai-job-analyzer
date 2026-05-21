@@ -342,3 +342,126 @@ export const JobDetails = ({ job, onJobUpdate }) => {
         </div>
     )
 }
+
+export const PromptEditor = ({
+    title,
+    label,
+    value,
+    loading,
+    saving,
+    saved,
+    onChange,
+    onSave,
+    placeholder,
+    rows = 25,
+    helpText
+}) => {
+    return (
+        <div className="card">
+            <div className="card-header">
+                <h5 className="mb-0">{title}</h5>
+            </div>
+            <div className="card-body">
+                <div className="mb-3">
+                    <label className="form-label">{label}</label>
+                    {loading ? (
+                        <div className="text-muted">Loading...</div>
+                    ) : (
+                        <textarea
+                            className="form-control"
+                            rows={rows}
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder={placeholder}
+                            style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                        />
+                    )}
+                    {helpText && (
+                        <div className="form-text">
+                            {helpText}
+                        </div>
+                    )}
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                    <button
+                        className="btn btn-primary"
+                        onClick={onSave}
+                        disabled={saving || loading}
+                    >
+                        {saving ? 'Saving...' : 'Save'}
+                    </button>
+                    {saved && (
+                        <span className="text-success">Saved!</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export const DataManager = ({
+                                onExport,
+                                onImport,
+                                exporting,
+                                importing,
+                                error,
+                                importResult
+                            }) => {
+    const fileInputRef = useRef(null)
+
+    const handleImportClick = () => {
+        fileInputRef.current?.click()
+    }
+
+    return (
+        <div className="card">
+            <div className="card-header">
+                <h5 className="mb-0">Data Management</h5>
+            </div>
+            <div className="card-body">
+                <p className="text-muted mb-3">
+                    Export or import your jobs database. Import will add new jobs and update existing ones without deleting.
+                </p>
+
+                <div className="d-flex gap-2 mb-3">
+                    <button
+                        className="btn btn-outline-primary"
+                        onClick={onExport}
+                        disabled={exporting}
+                    >
+                        {exporting ? 'Exporting...' : 'Export Database'}
+                    </button>
+
+                    <button
+                        className="btn btn-outline-success"
+                        onClick={handleImportClick}
+                        disabled={importing}
+                    >
+                        {importing ? 'Importing...' : 'Import Jobs'}
+                    </button>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".json"
+                        style={{ display: 'none' }}
+                        onChange={onImport}
+                    />
+                </div>
+
+                {error && (
+                    <div className="alert alert-danger mb-0">
+                        {error}
+                    </div>
+                )}
+
+                {importResult && (
+                    <div className="alert alert-success mb-0">
+                        Import complete: {importResult.imported} new, {importResult.updated} updated
+                        {importResult.skipped > 0 && `, ${importResult.skipped} skipped`}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}

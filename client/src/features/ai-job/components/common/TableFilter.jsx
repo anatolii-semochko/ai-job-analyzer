@@ -6,8 +6,19 @@ const sortOptions = [
     { value: 'rate', label: 'Rating' },
     { value: 'salary', label: 'Salary' },
     { value: 'status', label: 'Status' },
+    { value: 'statusDate', label: 'Status Date' },
     { value: 'comments', label: 'Comments' },
     { value: 'messages', label: 'Messages' },
+]
+
+const timeFilterOptions = [
+    { value: '', label: 'All Time' },
+    { value: 'today', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'last_hour', label: 'Last Hour' },
+    { value: 'last_day', label: 'Last Day' },
+    { value: 'last_week', label: 'Last Week' },
+    { value: 'last_month', label: 'Last Month' },
 ]
 
 const TableFilter = ({
@@ -56,7 +67,7 @@ const TableFilter = ({
         filterOptions.companies?.length > 0
     )
 
-    const hasActiveFilters = filters?.search || filters?.parser || filters?.country || filters?.company
+    const hasActiveFilters = filters?.search || filters?.parser || filters?.country || filters?.company || filters?.timeFilter
 
     return (
         <div className="d-flex gap-2 flex-wrap">
@@ -80,6 +91,20 @@ const TableFilter = ({
                 value={searchInput}
                 onChange={(e) => handleSearchChange(e.target.value)}
             />
+
+            <select
+                className="form-select form-select-sm"
+                style={{ width: 'auto', minWidth: '110px' }}
+                value={filters?.timeFilter || ''}
+                onChange={(e) => onFilterChange?.('timeFilter', e.target.value)}
+                title="Filter by time added to database"
+            >
+                {timeFilterOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </option>
+                ))}
+            </select>
 
             {hasFilters && filterOptions.parsers?.length > 0 && (
                 <select

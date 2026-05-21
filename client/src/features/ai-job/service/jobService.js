@@ -4,10 +4,11 @@ import promptDefault from '@config/promptDefault'
 import promptMain from '@config/promptMain'
 
 const DB_NAME = 'ai-job-db'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const STORE_NAME = 'jobs'
 const FILTERS_STORE_NAME = 'filters'
 const PROMPT_KEY = 'candidate_prompt'
+const APPLY_PROMPT_KEY = 'apply_prompt'
 
 const getDb = async () => {
     return openDB(DB_NAME, DB_VERSION, {
@@ -22,6 +23,10 @@ const getDb = async () => {
                 if (!db.objectStoreNames.contains(FILTERS_STORE_NAME)) {
                     db.createObjectStore(FILTERS_STORE_NAME, { keyPath: 'key' })
                 }
+            }
+            if (oldVersion < 3) {
+                // Додано поля status і statusDate в версії 3
+                // IndexedDB автоматично підтримує нові поля в об'єктах
             }
         },
     })
@@ -330,6 +335,31 @@ export const savePrompt = async (value) => {
     await db.put(FILTERS_STORE_NAME, { key: PROMPT_KEY, value })
 }
 
+export const getApplyPrompt = async () => {
+    const db = await getDb()
+    const record = await db.get(FILTERS_STORE_NAME, APPLY_PROMPT_KEY)
+    if (record && record.value !== undefined) {
+        return record.value
+    }
+    return `Hello [Company] Team,
+
+I would like to apply for the [Role] position.
+
+Education: [Education]
+
+LinkedIn: [LinkedInLink]
+
+Thank you for considering my application. I would be glad to discuss how my experience can contribute to your team.
+
+Best regards,
+[MyName]`
+}
+
+export const saveApplyPrompt = async (value) => {
+    const db = await getDb()
+    await db.put(FILTERS_STORE_NAME, { key: APPLY_PROMPT_KEY, value })
+}
+
 export const buildSystemPrompt = async () => {
     const candidatePrompt = await getPrompt()
     return promptMain.replace('{candidate_prompt}', candidatePrompt)
@@ -353,5 +383,7 @@ export default {
     importJobs,
     getPrompt,
     savePrompt,
+    getApplyPrompt,
+    saveApplyPrompt,
     buildSystemPrompt,
 }

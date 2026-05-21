@@ -6,4 +6,7 @@ const aiRoutes = require('./aiRoutes')
 router.use('/fetch', fetchRoutes)
 router.use('/ai', aiRoutes)
 
+// Proxy route for JobRight parser
+router.use('/proxy', fetchRoutes)
+
 module.exports = router

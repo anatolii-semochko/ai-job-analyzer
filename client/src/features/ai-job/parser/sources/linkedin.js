@@ -1,6 +1,144 @@
 export const name = 'linkedin'
 export const label = 'LinkedIn'
 
+export const browserScript = `async function scrapeLinkedInJobs() {
+    console.log('🚀 Старт');
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const results = [];
+    const seen = new Set();
+
+    function getScrollableContainer() {
+        const candidates = Array.from(document.querySelectorAll('div'));
+
+        return candidates.find(el => {
+            const style = window.getComputedStyle(el);
+            return (
+                (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+                el.scrollHeight > el.clientHeight &&
+                el.innerText.includes('jobs')
+            );
+        });
+    }
+
+    function collectLinks() {
+        document.querySelectorAll('a.job-card-container__link').forEach(a => {
+            if (a.href) seen.add(a.href);
+        });
+    }
+
+    async function scrollAndCollect() {
+        let container = getScrollableContainer();
+
+        if (!container) {
+            console.log('⚠️ Контейнер не знайдено, скролю всю сторінку');
+            container = document.scrollingElement || document.body;
+        }
+
+        let lastHeight = 0;
+
+        for (let i = 0; i < 25; i++) {
+            container.scrollTo(0, container.scrollHeight);
+            await sleep(800);
+
+            collectLinks();
+
+            if (container.scrollHeight === lastHeight) break;
+            lastHeight = container.scrollHeight;
+        }
+
+        container.scrollTo(0, 0);
+        await sleep(500);
+
+        collectLinks();
+
+        console.log(\`📊 Лінків: \${seen.size}\`);
+    }
+
+    async function waitForContentChange(prevHTML, timeout = 15000) {
+        const start = Date.now();
+
+        while (Date.now() - start < timeout) {
+            const el = document.querySelector('.job-view-layout.jobs-details');
+
+            if (el && el.innerHTML !== prevHTML) {
+                return el;
+            }
+
+            await sleep(300);
+        }
+
+        throw new Error('❌ Контент не оновився');
+    }
+
+    function findLink(href) {
+        return Array.from(document.querySelectorAll('a.job-card-container__link'))
+            .find(a => a.href === href);
+    }
+
+    await scrollAndCollect();
+
+    const allLinks = Array.from(seen);
+    let prevHTML = '';
+
+    console.log(\`🎯 Обробка \${allLinks.length}\`);
+
+    for (let i = 0; i < allLinks.length; i++) {
+        const href = allLinks[i];
+
+        try {
+            console.log(\`👉 \${i + 1}/\${allLinks.length}\`);
+
+            let link = findLink(href);
+
+            if (!link) {
+                window.scrollBy(0, 500);
+                await sleep(500);
+                link = findLink(href);
+            }
+
+            if (!link) {
+                console.log('⚠️ Пропуск (нема в DOM)');
+                continue;
+            }
+
+            link.scrollIntoView({ block: 'center' });
+            await sleep(400);
+
+            link.click();
+
+            const details = await waitForContentChange(prevHTML);
+            prevHTML = details.innerHTML;
+
+            results.push(details.outerHTML);
+
+            console.log('✅ Додано');
+
+            await sleep(700);
+
+        } catch (e) {
+            console.log('❌', e);
+        }
+    }
+
+    console.log('📦 Завершено');
+
+    const blob = new Blob([JSON.stringify(results, null, 2)], {
+        type: 'application/json'
+    });
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'jobs_data.json';
+    a.click();
+
+    console.log('✅ Файл готовий');
+
+    return results;
+}
+
+await scrapeLinkedInJobs();`
+
 const htmlToDom = (html) => {
     const parser = new DOMParser()
     return parser.parseFromString(html, 'text/html')
@@ -214,4 +352,5 @@ export default {
     label,
     parse,
     validate,
+    browserScript,
 }

@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
-import { parse, getParsersList, extractJobUrls, parseDetail, supportsDetailPages } from '../parser/parser'
+import { parse, getParsersList, extractJobUrls, parseDetail, supportsDetailPages, parsers } from '../parser/parser'
 import { save, updateFilterOptions } from '../service/jobService'
 import { fetchUrl, fetchBatch } from '@react/api/nodeApi'
+import JobRightParser from './parser/JobRightParser'
+import LinkedInParser from './parser/LinkedInParser'
+import WorkUAParser from './parser/WorkUAParser'
+import DOUParser from './parser/DOUParser'
+import DjinniParser from './parser/DjinniParser'
 
 const Parser = ({ onUpdate }) => {
     const [selectedParser, setSelectedParser] = useState('dou')
@@ -17,6 +22,14 @@ const Parser = ({ onUpdate }) => {
     const [uploadedFile, setUploadedFile] = useState(null)
 
     const parsersList = getParsersList()
+
+    const parserComponents = {
+        jobright: JobRightParser,
+        linkedin: LinkedInParser,
+        workua: WorkUAParser,
+        dou: DOUParser,
+        djinni: DjinniParser
+    }
 
     const isUrl = inputData.trim().startsWith('http://') || inputData.trim().startsWith('https://')
 
@@ -92,7 +105,7 @@ const Parser = ({ onUpdate }) => {
         }
     }
 
-    const handleParseData = (data) => {
+    const handleParseData = async (data) => {
         setError(null)
         setSaveResult(null)
         setParsing(true)
@@ -102,7 +115,7 @@ const Parser = ({ onUpdate }) => {
         console.log('[Parser] Input data length:', data.length)
 
         try {
-            const parsed = parse(selectedParser, data)
+            const parsed = await parse(selectedParser, data)
             console.log('[Parser] Parsed result:', parsed)
             setJobs(parsed)
             setExpandedJobs({})
@@ -191,14 +204,14 @@ const Parser = ({ onUpdate }) => {
     }
 
     return (
-        <div className="row">
-            <div className="col-6">
-                <div className="card">
-                    <div className="card-header">
+        <div className="row h-100">
+            <div className="col-6 d-flex flex-column">
+                <div className="card h-100 d-flex flex-column">
+                    <div className="card-header flex-shrink-0">
                         <h5 className="mb-0">Input Data</h5>
                     </div>
-                    <div className="card-body">
-                        <div className="mb-3">
+                    <div className="card-body flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
+                        <div className="mb-3 flex-shrink-0">
                             <label className="form-label">Parser</label>
                             <select
                                 className="form-select"
@@ -219,19 +232,24 @@ const Parser = ({ onUpdate }) => {
                             </select>
                         </div>
 
-                        <div className="mb-3">
+                        <div className="mb-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
                             <label className="form-label">URL / HTML / JSON</label>
                             <textarea
-                                className="form-control"
-                                rows={15}
+                                className="form-control flex-grow-1"
                                 value={inputData}
                                 onChange={(e) => setInputData(e.target.value)}
                                 placeholder="Paste URL, HTML or JSON data here..."
-                                style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                                style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: '12px',
+                                    minHeight: '200px',
+                                    resize: 'none',
+                                    overflowX: 'hidden'
+                                }}
                             />
                         </div>
 
-                        <div className="d-flex gap-2">
+                        <div className="d-flex gap-2 mb-3 flex-shrink-0">
                             {isUrl ? (
                                 <button
                                     className="btn btn-primary w-100"
@@ -257,7 +275,7 @@ const Parser = ({ onUpdate }) => {
                             )}
                         </div>
 
-                        <div className="mt-3">
+                        <div className="flex-shrink-0">
                             <label className="form-label">Or upload file:</label>
                             <input
                                 type="file"
@@ -283,7 +301,7 @@ const Parser = ({ onUpdate }) => {
                         </div>
 
                         {error && (
-                            <div className="alert alert-danger mt-3 mb-0">
+                            <div className="alert alert-danger mt-3 mb-0 flex-shrink-0">
                                 {error}
                             </div>
                         )}
@@ -291,9 +309,9 @@ const Parser = ({ onUpdate }) => {
                 </div>
             </div>
 
-            <div className="col-6">
-                <div className="card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="col-6 d-flex flex-column">
+                <div className="card h-100 d-flex flex-column">
+                    <div className="card-header d-flex justify-content-between align-items-center flex-shrink-0">
                         <h5 className="mb-0">Parsed Jobs ({jobs.length})</h5>
                         {jobs.length > 0 && (
                             <button
@@ -305,24 +323,24 @@ const Parser = ({ onUpdate }) => {
                             </button>
                         )}
                     </div>
-                    <div className="card-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                    <div className="card-body flex-grow-1 d-flex flex-column" style={{ minHeight: 0, overflow: 'hidden auto' }}>
                         {saveResult && (
-                            <div className="alert alert-success mb-3">
+                            <div className="alert alert-success mb-3 flex-shrink-0">
                                 Saved: {saveResult.created} created, {saveResult.updated} updated, {saveResult.unchanged} unchanged
                             </div>
                         )}
 
-                        {selectedParser === 'linkedin' && jobs.length === 0 && (
-                            <LinkedInScript />
-                        )}
-
-                        {selectedParser === 'dou' && jobs.length === 0 && (
-                            <DOUScript />
-                        )}
-
-                        {jobs.length === 0 && !['linkedin', 'dou'].includes(selectedParser) && (
-                            <p className="text-muted">No jobs parsed yet</p>
-                        )}
+                        {jobs.length === 0 && (() => {
+                            const ParserComponent = parserComponents[selectedParser]
+                            return ParserComponent ? (
+                                <ParserComponent
+                                    parser={parsers[selectedParser]}
+                                    jobs={jobs}
+                                />
+                            ) : (
+                                <p className="text-muted">No jobs parsed yet</p>
+                            )
+                        })()}
 
                         {jobs.length > 0 && (
                             <div className="list-group">
@@ -365,219 +383,6 @@ const Parser = ({ onUpdate }) => {
                     </div>
                 </div>
             </div>
-        </div>
-    )
-}
-
-const linkedInScript = `
-async function scrapeLinkedInJobs() {
-    console.log('🚀 Старт');
-
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const results = [];
-    const seen = new Set();
-
-    function getScrollableContainer() {
-        const candidates = Array.from(document.querySelectorAll('div'));
-
-        return candidates.find(el => {
-            const style = window.getComputedStyle(el);
-            return (
-                (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
-                el.scrollHeight > el.clientHeight &&
-                el.innerText.includes('jobs')
-            );
-        });
-    }
-
-    function collectLinks() {
-        document.querySelectorAll('a.job-card-container__link').forEach(a => {
-            if (a.href) seen.add(a.href);
-        });
-    }
-
-    async function scrollAndCollect() {
-        let container = getScrollableContainer();
-
-        if (!container) {
-            console.log('⚠️ Контейнер не знайдено, скролю всю сторінку');
-            container = document.scrollingElement || document.body;
-        }
-
-        let lastHeight = 0;
-
-        for (let i = 0; i < 25; i++) {
-            container.scrollTo(0, container.scrollHeight);
-            await sleep(800);
-
-            collectLinks();
-
-            if (container.scrollHeight === lastHeight) break;
-            lastHeight = container.scrollHeight;
-        }
-
-        container.scrollTo(0, 0);
-        await sleep(500);
-
-        collectLinks();
-
-        console.log(\`📊 Лінків: \${seen.size}\`);
-    }
-
-    async function waitForContentChange(prevHTML, timeout = 15000) {
-        const start = Date.now();
-
-        while (Date.now() - start < timeout) {
-            const el = document.querySelector('.job-view-layout.jobs-details');
-
-            if (el && el.innerHTML !== prevHTML) {
-                return el;
-            }
-
-            await sleep(300);
-        }
-
-        throw new Error('❌ Контент не оновився');
-    }
-
-    function findLink(href) {
-        return Array.from(document.querySelectorAll('a.job-card-container__link'))
-            .find(a => a.href === href);
-    }
-
-    await scrollAndCollect();
-
-    const allLinks = Array.from(seen);
-    let prevHTML = '';
-
-    console.log(\`🎯 Обробка \${allLinks.length}\`);
-
-    for (let i = 0; i < allLinks.length; i++) {
-        const href = allLinks[i];
-
-        try {
-            console.log(\`👉 \${i + 1}/\${allLinks.length}\`);
-
-            let link = findLink(href);
-
-            if (!link) {
-                window.scrollBy(0, 500);
-                await sleep(500);
-                link = findLink(href);
-            }
-
-            if (!link) {
-                console.log('⚠️ Пропуск (нема в DOM)');
-                continue;
-            }
-
-            link.scrollIntoView({ block: 'center' });
-            await sleep(400);
-
-            link.click();
-
-            const details = await waitForContentChange(prevHTML);
-            prevHTML = details.innerHTML;
-
-            results.push(details.outerHTML);
-
-            console.log('✅ Додано');
-
-            await sleep(700);
-
-        } catch (e) {
-            console.log('❌', e);
-        }
-    }
-
-    console.log('📦 Завершено');
-
-    const blob = new Blob([JSON.stringify(results, null, 2)], {
-        type: 'application/json'
-    });
-
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'jobs_data.json';
-    a.click();
-
-    console.log('✅ Файл готовий');
-
-    return results;
-}
-
-await scrapeLinkedInJobs();
-`
-
-const LinkedInScript = () => {
-    const handleCopyScript = () => {
-        navigator.clipboard.writeText(linkedInScript).then(() => {
-            // Could add a toast notification here
-        }).catch(err => {
-            console.error('Failed to copy script: ', err)
-        })
-    }
-
-    return (
-        <div className="alert alert-info">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="alert-heading mb-0">LinkedIn Parser Script</h6>
-                <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={handleCopyScript}
-                    title="Copy script to clipboard"
-                >
-                    📋 Copy Script
-                </button>
-            </div>
-            <p className="small mb-2">
-                Виконай цей скрипт в консолі браузера на сторінці LinkedIn Jobs:
-            </p>
-            <pre
-                className="bg-dark text-light p-2 rounded small"
-                style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
-            >
-                {linkedInScript}
-            </pre>
-            <p className="small mb-0 mt-2">
-                Після завантаження файлу <code>jobs_data.json</code>, вставте його вміст у поле зліва.
-            </p>
-        </div>
-    )
-}
-
-const DOUScript = () => {
-    const exampleUrl = "https://jobs.dou.ua/vacancies/?category=Blockchain"
-
-    const handleCopyUrl = () => {
-        navigator.clipboard.writeText(exampleUrl).then(() => {
-            // Could add a toast notification here
-        }).catch(err => {
-            console.error('Failed to copy URL: ', err)
-        })
-    }
-
-    return (
-        <div className="alert alert-info">
-            <h6 className="alert-heading">DOU.ua Parser</h6>
-            <p className="small mb-2">
-                <strong>Спосіб 1 (рекомендовано):</strong> Встав URL сторінки з вакансіями, наприклад:
-            </p>
-            <div className="d-flex align-items-center gap-2 mb-2">
-                <pre className="bg-dark text-light p-2 rounded small flex-grow-1 mb-0" style={{ fontSize: '11px' }}>
-                    {exampleUrl}
-                </pre>
-                <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={handleCopyUrl}
-                    title="Copy example URL to clipboard"
-                >
-                    📋 Copy
-                </button>
-            </div>
-            <p className="small mb-0">
-                <strong>Спосіб 2:</strong> Скопіюй HTML зі сторінки (Ctrl+A, Ctrl+C) і встав сюди.
-            </p>
         </div>
     )
 }

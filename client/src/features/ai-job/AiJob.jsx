@@ -47,10 +47,12 @@ const AiJob = () => {
 
     const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component
 
+    const isTableTab = ['jobs', 'favorites', 'contacted', 'hidden'].includes(activeTab)
+
     return (
         <div className="row px-3">
-            <div className="col-12">
-                <ul className="nav nav-tabs mb-3">
+            <div className="col-12 d-flex flex-column" style={{ height: 'calc(100vh - 40px)' }}>
+                <ul className="nav nav-tabs mb-3 flex-shrink-0">
                     {tabs.map(tab => (
                         <li key={tab.id} className="nav-item">
                             <button
@@ -68,7 +70,14 @@ const AiJob = () => {
                     ))}
                 </ul>
 
-                <div className="tab-content">
+                <div
+                    className="tab-content flex-grow-1"
+                    style={{
+                        overflow: isTableTab ? 'hidden' : 'hidden auto',
+                        height: isTableTab ? '100%' : 'auto',
+                        minHeight: 0
+                    }}
+                >
                     {ActiveComponent && (
                         <ActiveComponent
                             onUpdate={loadStats}
