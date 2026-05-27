@@ -22,8 +22,21 @@ export const browserScript = `async function scrapeLinkedInJobs() {
     }
 
     function collectLinks() {
-        document.querySelectorAll('a.job-card-container__link').forEach(a => {
-            if (a.href) seen.add(a.href);
+        // Try multiple selectors for different LinkedIn formats
+        const selectors = [
+            'a.job-card-container__link',          // Original format
+            'a[href*="/jobs/view/"]',               // Generic job view links
+            '[data-job-id] a[href*="/jobs/view/"]', // Job cards with data-job-id
+            '.job-card-container a[href*="/jobs/view/"]', // Links within job card containers
+            '.jobs-search-results-list a[href*="/jobs/view/"]' // Links within search results
+        ];
+
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(a => {
+                if (a.href && a.href.includes('/jobs/view/')) {
+                    seen.add(a.href);
+                }
+            });
         });
     }
 
@@ -59,10 +72,21 @@ export const browserScript = `async function scrapeLinkedInJobs() {
         const start = Date.now();
 
         while (Date.now() - start < timeout) {
-            const el = document.querySelector('.job-view-layout.jobs-details');
+            // Try multiple selectors for job details containers
+            const selectors = [
+                '.job-view-layout.jobs-details',           // Original format
+                '.jobs-unified-top-card',                  // Unified top card format
+                '.job-details-jobs-unified-top-card',      // New format from file 555
+                '.jobs-details',                           // Fallback 1
+                '[data-job-id]',                          // Fallback 2
+                '.job-view'                               // Fallback 3
+            ];
 
-            if (el && el.innerHTML !== prevHTML) {
-                return el;
+            for (const selector of selectors) {
+                const el = document.querySelector(selector);
+                if (el && el.innerHTML !== prevHTML) {
+                    return el;
+                }
             }
 
             await sleep(300);
@@ -72,8 +96,21 @@ export const browserScript = `async function scrapeLinkedInJobs() {
     }
 
     function findLink(href) {
-        return Array.from(document.querySelectorAll('a.job-card-container__link'))
-            .find(a => a.href === href);
+        // Try multiple selectors to find the link
+        const selectors = [
+            'a.job-card-container__link',
+            'a[href*="/jobs/view/"]',
+            '[data-job-id] a[href*="/jobs/view/"]',
+            '.job-card-container a[href*="/jobs/view/"]',
+            '.jobs-search-results-list a[href*="/jobs/view/"]'
+        ];
+
+        for (const selector of selectors) {
+            const link = Array.from(document.querySelectorAll(selector))
+                .find(a => a.href === href);
+            if (link) return link;
+        }
+        return null;
     }
 
     await scrollAndCollect();
@@ -257,24 +294,79 @@ const parseJobDetail = (html) => {
 
     console.log('[LinkedIn] Parsing job detail...')
 
-    const titleEl = root.querySelector('h1.t-24 a, h1 a[href*="/jobs/view/"], .job-details-jobs-unified-top-card__job-title a')
+    // Try multiple selectors for title
+    const titleSelectors = [
+        'h1.t-24 a',
+        'h1 a[href*="/jobs/view/"]',
+        '.job-details-jobs-unified-top-card__job-title a',
+        '.job-details-jobs-unified-top-card__job-title',
+        '.jobs-unified-top-card__job-title a',
+        '.jobs-unified-top-card__job-title',
+        'h1[data-test="job-title"]',
+        '.job-view-layout h1'
+    ];
+
+    let titleEl = null;
+    for (const selector of titleSelectors) {
+        titleEl = root.querySelector(selector);
+        if (titleEl) break;
+    }
+
     const title = titleEl ? titleEl.textContent.trim() : ''
     console.log('[LinkedIn] Title:', title)
 
-    const href = titleEl?.getAttribute('href') || ''
+    const href = titleEl?.getAttribute('href') || titleEl?.closest('a')?.getAttribute('href') || ''
     const fullHref = href.startsWith('http') ? href : (href ? `https://www.linkedin.com${href}` : null)
     const itemId = extractJobId(href)
 
-    const company = getText(root, '.job-details-jobs-unified-top-card__company-name a')
+    // Try multiple selectors for company
+    const companySelectors = [
+        '.job-details-jobs-unified-top-card__company-name a',
+        '.job-details-jobs-unified-top-card__company-name',
+        '.jobs-unified-top-card__company-name a',
+        '.jobs-unified-top-card__company-name',
+        '[data-test="job-company-name"]'
+    ];
 
-    const tertiaryText = getText(root, '.job-details-jobs-unified-top-card__tertiary-description-container')
+    let company = '';
+    for (const selector of companySelectors) {
+        company = getText(root, selector);
+        if (company) break;
+    }
+
+    // Try multiple selectors for tertiary description (location, date, etc.)
+    const tertiarySelectors = [
+        '.job-details-jobs-unified-top-card__tertiary-description-container',
+        '.jobs-unified-top-card__tertiary-description',
+        '.job-details-top-card__tertiary-description'
+    ];
+
+    let tertiaryText = '';
+    for (const selector of tertiarySelectors) {
+        tertiaryText = getText(root, selector);
+        if (tertiaryText) break;
+    }
 
     const locationMatch = tertiaryText.match(/^([^·]+)/)
     const country = locationMatch ? locationMatch[1].trim() : ''
 
     const datePublish = parseDate(tertiaryText)
 
-    const descriptionEl = root.querySelector('#job-details .mt4, .jobs-description-content__text')
+    // Try multiple selectors for description
+    const descriptionSelectors = [
+        '#job-details .mt4',
+        '.jobs-description-content__text',
+        '.job-details-jobs-unified-top-card .jobs-description',
+        '.jobs-description__text',
+        '.job-view-layout .jobs-description'
+    ];
+
+    let descriptionEl = null;
+    for (const selector of descriptionSelectors) {
+        descriptionEl = root.querySelector(selector);
+        if (descriptionEl) break;
+    }
+
     let description = descriptionEl ? descriptionEl.innerHTML.trim() : ''
     description = description.replace(/<!--.*?-->/g, '')
 
@@ -344,7 +436,10 @@ export const validate = (data) => {
     if (typeof data !== 'string') return false
     return data.includes('linkedin') ||
            data.includes('job-details') ||
-           data.includes('jobs-unified-top-card')
+           data.includes('jobs-unified-top-card') ||
+           data.includes('job-details-jobs-unified-top-card') ||
+           data.includes('jobs-search-results') ||
+           data.includes('/jobs/view/')
 }
 
 export default {
