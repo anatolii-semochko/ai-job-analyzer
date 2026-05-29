@@ -7,6 +7,7 @@ import LinkedInParser from './parser/LinkedInParser'
 import WorkUAParser from './parser/WorkUAParser'
 import DOUParser from './parser/DOUParser'
 import DjinniParser from './parser/DjinniParser'
+import JobgetherParser from './parser/JobgetherParser'
 
 const Parser = ({ onUpdate }) => {
     const [selectedParser, setSelectedParser] = useState('dou')
@@ -28,7 +29,8 @@ const Parser = ({ onUpdate }) => {
         linkedin: LinkedInParser,
         workua: WorkUAParser,
         dou: DOUParser,
-        djinni: DjinniParser
+        djinni: DjinniParser,
+        jobgether: JobgetherParser
     }
 
     const isUrl = inputData.trim().startsWith('http://') || inputData.trim().startsWith('https://')
