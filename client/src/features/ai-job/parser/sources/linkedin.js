@@ -1,180 +1,322 @@
 export const name = 'linkedin'
 export const label = 'LinkedIn'
 
-export const browserScript = `async function scrapeLinkedInJobs() {
-    console.log('🚀 Старт');
-
+export const browserScript = `(async function scrapeLinkedInJobs() {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const results = [];
-    const seen = new Set();
 
-    function getScrollableContainer() {
-        const candidates = Array.from(document.querySelectorAll('div'));
+    // -----------------------------
+    // ROOT PANEL
+    // -----------------------------
+    function getPanel() {
+        return document.querySelector('main');
+    }
 
-        return candidates.find(el => {
-            const style = window.getComputedStyle(el);
+    function getJobState() {
+        const panel = getPanel();
+        const link = panel?.querySelector('a[href*="/jobs/view/"]');
+
+        const jobId =
+            link?.href?.match(/\\/jobs\\/view\\/(\\d+)/)?.[1] || null;
+
+        return { panel, jobId };
+    }
+
+    // -----------------------------
+    // WAIT FOR JOB FULL LOAD (POLLING)
+    // -----------------------------
+    function waitForJobLoad(prevJobId) {
+        return new Promise((resolve, reject) => {
+            const start = Date.now();
+
+            const interval = setInterval(() => {
+                const { panel, jobId } = getJobState();
+
+                const about = panel?.querySelector(
+                    '[componentkey^="JobDetails_AboutTheJob_"]'
+                );
+
+                const hasRealContent =
+                    about &&
+                    about.innerText &&
+                    about.innerText.trim().length > 100;
+
+                const isDifferentJob = jobId && jobId !== prevJobId;
+
+                if (isDifferentJob && hasRealContent) {
+                    clearInterval(interval);
+                    resolve({ panel, jobId, about });
+                }
+
+                if (Date.now() - start > 20000) {
+                    clearInterval(interval);
+                    reject(new Error('Timeout waiting job load'));
+                }
+            }, 200);
+        });
+    }
+
+    // -----------------------------
+    // LEFT SIDE JOB LIST (FIXED SCOPING)
+    // -----------------------------
+    function collectJobs() {
+        const root =
+            document.querySelector('[componentkey="SearchResultsMainContent"]') ||
+            document.querySelector('header + div') ||
+            document.body;
+
+        return Array.from(
+            root.querySelectorAll('[role="button"]')
+        ).filter(el => {
             return (
-                (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
-                el.scrollHeight > el.clientHeight &&
-                el.innerText.includes('jobs')
+                el.offsetParent &&
+                el.querySelector('span.b391113f') // title marker = job card
             );
         });
     }
 
-    function collectLinks() {
-        // Try multiple selectors for different LinkedIn formats
-        const selectors = [
-            'a.job-card-container__link',          // Original format
-            'a[href*="/jobs/view/"]',               // Generic job view links
-            '[data-job-id] a[href*="/jobs/view/"]', // Job cards with data-job-id
-            '.job-card-container a[href*="/jobs/view/"]', // Links within job card containers
-            '.jobs-search-results-list a[href*="/jobs/view/"]' // Links within search results
-        ];
+    // -----------------------------
+    // EXTRACT DATA (CLEAN + STABLE)
+    // -----------------------------
+    function extractJob(currentJobCard, panel, about) {
+        const jobLink = panel.querySelector('a[href*="/jobs/view/"]');
+        const companyLink = panel.querySelector('a[href*="/company/"]');
 
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(a => {
-                if (a.href && a.href.includes('/jobs/view/')) {
-                    seen.add(a.href);
-                }
-            });
-        });
-    }
+        const jobId =
+            jobLink?.href?.match(/\\/jobs\\/view\\/(\\d+)/)?.[1] || null;
 
-    async function scrollAndCollect() {
-        let container = getScrollableContainer();
+        const isDeactivated =
+            !!panel.innerText.match(/No longer accepting applications/i);
 
-        if (!container) {
-            console.log('⚠️ Контейнер не знайдено, скролю всю сторінку');
-            container = document.scrollingElement || document.body;
+        // Extract company from job card (more reliable)
+        let company = companyLink?.innerText?.trim() || null;
+        if (!company) {
+            const cardText = currentJobCard.innerText;
+            const lines = cardText.split('\\n').map(line => line.trim()).filter(Boolean);
+            // Company is typically at index 2 (after title)
+            company = lines[2] || null;
         }
 
-        let lastHeight = 0;
-
-        for (let i = 0; i < 25; i++) {
-            container.scrollTo(0, container.scrollHeight);
-            await sleep(800);
-
-            collectLinks();
-
-            if (container.scrollHeight === lastHeight) break;
-            lastHeight = container.scrollHeight;
-        }
-
-        container.scrollTo(0, 0);
-        await sleep(500);
-
-        collectLinks();
-
-        console.log(\`📊 Лінків: \${seen.size}\`);
+        return {
+            jobId,
+            title: jobLink?.innerText?.trim() || null,
+            url: jobId ? 'https://www.linkedin.com/jobs/view/' + jobId + '/' : null,
+            company: company,
+            companyUrl: companyLink?.href || null,
+            location: extractLocation(currentJobCard),
+            salary: extractSalary(currentJobCard),
+            description: sanitizeDescription(about?.innerHTML),
+            isDeactivated,
+        };
     }
 
-    async function waitForContentChange(prevHTML, timeout = 15000) {
-        const start = Date.now();
+    function extractLocation(currentJobCard) {
+        if (!currentJobCard) return null;
 
-        while (Date.now() - start < timeout) {
-            // Try multiple selectors for job details containers
-            const selectors = [
-                '.job-view-layout.jobs-details',           // Original format
-                '.jobs-unified-top-card',                  // Unified top card format
-                '.job-details-jobs-unified-top-card',      // New format from file 555
-                '.jobs-details',                           // Fallback 1
-                '[data-job-id]',                          // Fallback 2
-                '.job-view'                               // Fallback 3
-            ];
+        const text = currentJobCard.innerText;
+        const lines = text.split('\\n').map(line => line.trim()).filter(Boolean);
 
-            for (const selector of selectors) {
-                const el = document.querySelector(selector);
-                if (el && el.innerHTML !== prevHTML) {
-                    return el;
-                }
+        // Location is typically at index 3 (after title and company)
+        if (lines[3] &&
+            !lines[3].includes('$') &&
+            !lines[3].match(/\\d+\\s+(minute|hour|day|week|month)s?\\s+ago/i) &&
+            (lines[3].includes('Remote') ||
+             lines[3].includes('United States') ||
+             /\\w+,\\s*[A-Z]{2}/.test(lines[3]))) {
+            return lines[3];
+        }
+
+        // Fallback: search for location pattern in all lines
+        for (const line of lines) {
+            if (!line.includes('$') &&
+                !line.match(/\\d+\\s+(minute|hour|day|week|month)s?\\s+ago/i) &&
+                !line.includes('benefit') &&
+                !line.includes('applicant') &&
+                (
+                    /\\b(Remote|Hybrid|On-site)\\b/i.test(line) ||
+                    /\\b(United States|Canada|New York|California|Texas|Florida|Phoenix|Brooklyn)\\b/i.test(line) ||
+                    /\\w+,\\s*[A-Z]{2}/.test(line)
+                )) {
+                return line;
             }
-
-            await sleep(300);
         }
 
-        throw new Error('❌ Контент не оновився');
-    }
-
-    function findLink(href) {
-        // Try multiple selectors to find the link
-        const selectors = [
-            'a.job-card-container__link',
-            'a[href*="/jobs/view/"]',
-            '[data-job-id] a[href*="/jobs/view/"]',
-            '.job-card-container a[href*="/jobs/view/"]',
-            '.jobs-search-results-list a[href*="/jobs/view/"]'
-        ];
-
-        for (const selector of selectors) {
-            const link = Array.from(document.querySelectorAll(selector))
-                .find(a => a.href === href);
-            if (link) return link;
-        }
         return null;
     }
 
-    await scrollAndCollect();
+    function extractSalary(currentJobCard) {
+        if (!currentJobCard) return null;
 
-    const allLinks = Array.from(seen);
-    let prevHTML = '';
+        const text = currentJobCard.innerText;
+        const lines = text.split('\\n').map(line => line.trim()).filter(Boolean);
 
-    console.log(\`🎯 Обробка \${allLinks.length}\`);
+        // Find line with $ pattern (salary)
+        const salaryLine = lines.find(line => /\\$[\\d,]+K?\\//.test(line));
+        return salaryLine || null;
+    }
 
-    for (let i = 0; i < allLinks.length; i++) {
-        const href = allLinks[i];
+    function parseSalaryFromText(text) {
+        if (!text) return null;
+
+        // Більш детальні паттерни для LinkedIn форматів
+        const salaryPatterns = [
+            // $150K/yr - $200K/yr (range with K suffix)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)K\\s*\\/\\s*yr\\s*-\\s*\\$([\\d,]+(?:\\.\\d+)?)K\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000;
+                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
+                    return Math.round((min + max) / 2 / 12);
+                }
+            },
+            // $135,000/yr - $170,000/yr (range without K)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*yr\\s*-\\s*\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const min = parseFloat(match[1].replace(/,/g, ''));
+                    const max = parseFloat(match[2].replace(/,/g, ''));
+                    return Math.round((min + max) / 2 / 12);
+                }
+            },
+            // $75/hr - $85/hr (hourly range)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*hr\\s*-\\s*\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*hr/gi,
+                process: (match) => {
+                    const min = parseFloat(match[1].replace(/,/g, ''));
+                    const max = parseFloat(match[2].replace(/,/g, ''));
+                    return Math.round((min + max) / 2 * 160);
+                }
+            },
+            // $150K - $200K/yr (mixed format)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)K\\s*-\\s*\\$([\\d,]+(?:\\.\\d+)?)K\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000;
+                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
+                    return Math.round((min + max) / 2 / 12);
+                }
+            },
+            // $150 - $200K/yr (different format)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)\\s*-\\s*([\\d,]+(?:\\.\\d+)?)K\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000; // assume first number is also in K
+                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
+                    return Math.round((min + max) / 2 / 12);
+                }
+            },
+            // $220K/yr (single with K)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)K\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const amount = parseFloat(match[1].replace(/,/g, '')) * 1000;
+                    return Math.round(amount / 12);
+                }
+            },
+            // $220,000/yr (single without K)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*yr/gi,
+                process: (match) => {
+                    const amount = parseFloat(match[1].replace(/,/g, ''));
+                    return Math.round(amount / 12);
+                }
+            },
+            // $85/hr (hourly single)
+            {
+                pattern: /\\$([\\d,]+(?:\\.\\d+)?)\\s*\\/\\s*hr/gi,
+                process: (match) => {
+                    const amount = parseFloat(match[1].replace(/,/g, ''));
+                    return Math.round(amount * 160);
+                }
+            },
+        ];
+
+        for (const salaryDef of salaryPatterns) {
+            const match = text.match(salaryDef.pattern);
+            if (match) {
+                try {
+                    const result = salaryDef.process(match);
+                    if (result && result > 0 && result < 50000) { // reasonable monthly salary range
+                        return result;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function sanitizeDescription(html) {
+        if (!html) return null;
+
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // 1. Видаляємо всі <button>
+        doc.querySelectorAll('button').forEach(btn => btn.remove());
+
+        // 2. Беремо HTML без кнопок
+        let result = doc.body.innerHTML;
+
+        // 3. \\\\n → <br>
+        result = result.replace(/\\\\n/g, '<br>');
+
+        return result;
+    }
+
+    // -----------------------------
+    // MAIN
+    // -----------------------------
+    const jobs = collectJobs();
+    console.log('Found ' + jobs.length + ' jobs');
+
+    const results = [];
+    let prevJobId = null;
+
+    for (let i = 0; i < jobs.length; i++) {
+        const job = jobs[i];
 
         try {
-            console.log(\`👉 \${i + 1}/\${allLinks.length}\`);
+            console.log('Processing ' + (i + 1) + '/' + jobs.length);
 
-            let link = findLink(href);
+            job.scrollIntoView({ block: 'center' });
+            await sleep(300);
 
-            if (!link) {
-                window.scrollBy(0, 500);
-                await sleep(500);
-                link = findLink(href);
-            }
+            job.click();
 
-            if (!link) {
-                console.log('⚠️ Пропуск (нема в DOM)');
-                continue;
-            }
+            const { panel, jobId, about } =
+                await waitForJobLoad(prevJobId);
 
-            link.scrollIntoView({ block: 'center' });
+            prevJobId = jobId;
+
+            const result = extractJob(job, panel, about);
+
+            console.log('=== RESULT ===', result);
+
+            results.push(result);
+
             await sleep(400);
 
-            link.click();
-
-            const details = await waitForContentChange(prevHTML);
-            prevHTML = details.innerHTML;
-
-            results.push(details.outerHTML);
-
-            console.log('✅ Додано');
-
-            await sleep(700);
-
         } catch (e) {
-            console.log('❌', e);
+            console.error('Error on job ' + (i + 1) + ':', e.message);
         }
     }
 
-    console.log('📦 Завершено');
-
+    // -----------------------------
+    // DOWNLOAD
+    // -----------------------------
     const blob = new Blob([JSON.stringify(results, null, 2)], {
         type: 'application/json'
     });
 
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'jobs_data.json';
+    a.download = 'linkedin_jobs.json';
     a.click();
 
-    console.log('✅ Файл готовий');
-
+    console.log('DONE');
     return results;
-}
-
-await scrapeLinkedInJobs();`
+})();`
 
 const htmlToDom = (html) => {
     const parser = new DOMParser()
@@ -394,32 +536,69 @@ const parseJobDetail = (html) => {
 export const parse = (data) => {
     console.log('[LinkedIn] Starting parse...')
 
-    let htmlArray = []
+    let jobsArray = []
 
     if (typeof data === 'string') {
         const trimmed = data.trim()
         if (trimmed.startsWith('[')) {
             try {
-                htmlArray = JSON.parse(trimmed)
-                console.log('[LinkedIn] Parsed JSON array with', htmlArray.length, 'items')
+                jobsArray = JSON.parse(trimmed)
+                console.log('[LinkedIn] Parsed JSON array with', jobsArray.length, 'items')
             } catch (e) {
                 console.error('[LinkedIn] Failed to parse JSON:', e)
-                htmlArray = [trimmed]
+                return []
             }
         } else {
-            htmlArray = [trimmed]
+            return []
         }
     } else if (Array.isArray(data)) {
-        htmlArray = data
+        jobsArray = data
     }
 
     const jobs = []
 
-    for (let i = 0; i < htmlArray.length; i++) {
-        console.log(`[LinkedIn] Processing item ${i + 1}/${htmlArray.length}`)
+    for (let i = 0; i < jobsArray.length; i++) {
+        console.log(`[LinkedIn] Processing item ${i + 1}/${jobsArray.length}`)
         try {
-            const job = parseJobDetail(htmlArray[i])
-            if (job) {
+            const jobData = jobsArray[i]
+
+            if (!jobData || typeof jobData !== 'object') {
+                console.log('[LinkedIn] Skipping invalid job data')
+                continue
+            }
+
+            // Виправляємо location якщо це title
+            let location = jobData.location
+            if (!location || location === jobData.title || location.includes('Engineer') || location.includes('Developer')) {
+                // Шукаємо в description
+                const descLocationMatch = jobData.description?.match(/<strong>Location:\s*<\/strong>([^<]+)/i)
+                if (descLocationMatch) {
+                    location = descLocationMatch[1].trim()
+                } else {
+                    location = 'Remote' // default fallback
+                }
+            }
+
+            // Витягаємо salary з description якщо null або невалідне
+            let salary = jobData.salary
+            if (!salary || typeof salary !== 'number') {
+                salary = parseSalary(jobData.description || '')
+            }
+
+            const job = {
+                parser: name,
+                itemId: jobData.jobId || null,
+                title: jobData.title || '',
+                company: jobData.company || '',
+                country: location || '',
+                salary: salary,
+                datePublish: null,
+                description: jobData.description || '',
+                href: jobData.url || '',
+                isDeactivated: jobData.isDeactivated || false
+            }
+
+            if (job.title) {
                 jobs.push(job)
                 console.log('[LinkedIn] Job added:', job.title)
             }
@@ -434,6 +613,26 @@ export const parse = (data) => {
 
 export const validate = (data) => {
     if (typeof data !== 'string') return false
+
+    // Перевіряємо чи це новий формат JSON
+    const trimmed = data.trim()
+    if (trimmed.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(trimmed)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // Перевіряємо перший елемент на наявність полів LinkedIn job
+                const first = parsed[0]
+                return first &&
+                       typeof first === 'object' &&
+                       (first.jobId || first.url?.includes('linkedin.com/jobs/view/') ||
+                        first.title || first.company)
+            }
+        } catch (e) {
+            // Якщо не парситься як JSON, перевіряємо старий формат
+        }
+    }
+
+    // Старий формат (HTML)
     return data.includes('linkedin') ||
            data.includes('job-details') ||
            data.includes('jobs-unified-top-card') ||

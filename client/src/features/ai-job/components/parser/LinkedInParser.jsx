@@ -33,7 +33,7 @@ const LinkedInParser = ({ parser, jobs }) => {
                     {parser.browserScript}
                 </pre>
                 <p className="small mb-0 mt-2">
-                    Після завантаження файлу <code>jobs_data.json</code>, вставте його вміст у поле зліва.
+                    Після завантаження файлу <code>linkedin_jobs.json</code>, вставте його вміст у поле зліва.
                 </p>
             </div>
         )
