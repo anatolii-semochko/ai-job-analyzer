@@ -44,13 +44,19 @@ export const save = async (jobData) => {
     const existingJob = await db.get(STORE_NAME, hash)
 
     if (!existingJob) {
-        const job = createJob(jobData)
+        const job = createJob({
+            ...jobData,
+            status: jobData.isDeactivated ? 'Deactivated' : jobData.status
+        })
         await db.put(STORE_NAME, job)
         return { job, action: 'created' }
     }
 
     if (isJobChanged(existingJob, jobData)) {
-        const job = updateJob(existingJob, jobData)
+        const job = updateJob(existingJob, {
+            ...jobData,
+            status: jobData.isDeactivated ? 'Deactivated' : (jobData.status || existingJob.status)
+        })
         await db.put(STORE_NAME, job)
         return { job, action: 'updated' }
     }

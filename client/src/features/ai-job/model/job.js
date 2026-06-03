@@ -23,6 +23,7 @@ export const createFullHash = (data) => {
         title: data.title,
         description: data.description,
         salary: data.salary,
+        isDeactivated: data.isDeactivated,
     })
     return generateHash(hashSource)
 }
@@ -68,6 +69,7 @@ export const createJob = (data) => {
         contacted: data.contacted ?? false,
         refused: data.refused ?? false,
         hidden: data.hidden ?? false,
+        isDeactivated: data.isDeactivated ?? false,
 
         status: data.status || null,
         statusDate: data.statusDate || null,
@@ -104,6 +106,7 @@ export const updateJob = (existingJob, newData) => {
         contacted: newData.contacted ?? existingJob.contacted ?? false,
         refused: newData.refused ?? existingJob.refused ?? false,
         hidden: newData.hidden ?? existingJob.hidden ?? false,
+        isDeactivated: newData.isDeactivated ?? existingJob.isDeactivated ?? false,
 
         status: newData.status ?? existingJob.status,
         statusDate: newData.statusDate ?? existingJob.statusDate,
