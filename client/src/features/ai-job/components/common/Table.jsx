@@ -137,7 +137,7 @@ const Table = ({
 
                                     <td>
                                         {job.salary ? (
-                                            <span className="text-success fw-bold">${job.salary}</span>
+                                            <span className="text-success fw-bold">{job.salary}</span>
                                         ) : (
                                             <span className="text-muted">–</span>
                                         )}

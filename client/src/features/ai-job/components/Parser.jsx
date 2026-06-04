@@ -10,7 +10,7 @@ import DjinniParser from './parser/DjinniParser'
 import JobgetherParser from './parser/JobgetherParser'
 
 const Parser = ({ onUpdate }) => {
-    const [selectedParser, setSelectedParser] = useState('dou')
+    const [selectedParser, setSelectedParser] = useState('linkedin')
     const [inputData, setInputData] = useState('')
     const [jobs, setJobs] = useState([])
     const [expandedJobs, setExpandedJobs] = useState({})
@@ -358,7 +358,7 @@ const Parser = ({ onUpdate }) => {
                                                     <span className="me-3">{job.company || 'N/A'}</span>
                                                     <span className="me-3">{job.country || 'N/A'}</span>
                                                     {job.salary && (
-                                                        <span className="text-success">${job.salary}</span>
+                                                        <span className="text-success">{job.salary}</span>
                                                     )}
                                                 </div>
                                             </div>

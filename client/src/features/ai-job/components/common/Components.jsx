@@ -306,11 +306,44 @@ export const JobDetails = ({ job, onJobUpdate }) => {
             {job.description && (
                 <div className={`row mt-2 ${job.messages && job.messages.length > 0 ? '' : ''}`}>
                     <div className={job.messages && job.messages.length > 0 ? 'col-7' : 'col-12'}>
-                        <div
-                            ref={descriptionRef}
-                            className="p-2 bg-light rounded small"
-                            dangerouslySetInnerHTML={{ __html: job.description }}
-                        />
+                        <div className="p-2 bg-light rounded small">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <small className="text-muted">Job Description</small>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={async () => {
+                                        try {
+                                            // Extract text from HTML
+                                            const tempDiv = document.createElement('div')
+                                            tempDiv.innerHTML = job.description
+                                            const plainText = tempDiv.textContent || tempDiv.innerText || ''
+    
+                                            // Copy to clipboard
+                                            await navigator.clipboard.writeText(plainText)
+    
+                                            // Visual feedback
+                                            const btn = document.activeElement
+                                            const originalText = btn.textContent
+                                            btn.textContent = 'Copied!'
+                                            btn.className = 'btn btn-success btn-sm'
+                                            setTimeout(() => {
+                                                btn.textContent = originalText
+                                                btn.className = 'btn btn-outline-secondary btn-sm'
+                                            }, 1000)
+                                        } catch (err) {
+                                            console.error('Failed to copy text: ', err)
+                                        }
+                                    }}
+                                    title="Copy description as plain text"
+                                >
+                                    Copy Text
+                                </button>
+                            </div>
+                            <div
+                                ref={descriptionRef}
+                                dangerouslySetInnerHTML={{ __html: job.description }}
+                            />
+                        </div>
                     </div>
                     {job.messages && job.messages.length > 0 && (
                         <div className="col-5">

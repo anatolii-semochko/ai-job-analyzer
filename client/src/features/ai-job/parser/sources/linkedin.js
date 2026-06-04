@@ -24,9 +24,10 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
     // -----------------------------
     // WAIT FOR JOB FULL LOAD (POLLING)
     // -----------------------------
-    function waitForJobLoad(prevJobId) {
+    function waitForJobLoad(prevJobId, prevDescription = null) {
         return new Promise((resolve, reject) => {
             const start = Date.now();
+            let stableContentTime = null;
 
             const interval = setInterval(() => {
                 const { panel, jobId } = getJobState();
@@ -42,12 +43,28 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
 
                 const isDifferentJob = jobId && jobId !== prevJobId;
 
+                // Перевіряємо, чи контент відрізняється від попереднього
+                const currentDescription = about?.innerHTML?.trim() || '';
+                const isContentDifferent = !prevDescription || currentDescription !== prevDescription;
+
                 if (isDifferentJob && hasRealContent) {
-                    clearInterval(interval);
-                    resolve({ panel, jobId, about });
+                    if (isContentDifferent) {
+                        // Контент новий - дозволяємо завершити
+                        if (!stableContentTime) {
+                            stableContentTime = Date.now();
+                        }
+                        // Чекаємо 300ms стабільності контенту
+                        if (Date.now() - stableContentTime >= 300) {
+                            clearInterval(interval);
+                            resolve({ panel, jobId, about, description: currentDescription });
+                        }
+                    } else {
+                        // Контент такий же як попередній - скидаємо таймер стабільності
+                        stableContentTime = null;
+                    }
                 }
 
-                if (Date.now() - start > 20000) {
+                if (Date.now() - start > 25000) {
                     clearInterval(interval);
                     reject(new Error('Timeout waiting job load'));
                 }
@@ -69,7 +86,7 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
         ).filter(el => {
             return (
                 el.offsetParent &&
-                el.querySelector('span.b391113f') // title marker = job card
+                el.querySelector('span') // title marker = job card
             );
         });
     }
@@ -145,13 +162,42 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
 
     function extractSalary(currentJobCard) {
         if (!currentJobCard) return null;
-
-        const text = currentJobCard.innerText;
-        const lines = text.split('\\n').map(line => line.trim()).filter(Boolean);
-
-        // Find line with $ pattern (salary)
-        const salaryLine = lines.find(line => /\\$[\\d,]+K?\\//.test(line));
-        return salaryLine || null;
+    
+        const lines = currentJobCard.innerText
+            .split('\\n')
+            .map(l => l.trim())
+            .filter(Boolean);
+    
+        const currencyPattern =
+            /(\\$|€|£|USD|EUR|GBP)/i;
+    
+        const numberPattern =
+            /\\d[\\d,]*(\\.\\d+)?K?/i;
+    
+        const rangePattern =
+            /[-–]/;
+    
+        const periodPattern =
+            /(\\/\\s?(yr|year|hr|hour|mo|month)|per\\s+(year|hour|month))/i;
+    
+        const salaryRegex =
+            new RegExp(
+                currencyPattern.source + '.*' + numberPattern.source + '.*(' + rangePattern.source + '.*' + currencyPattern.source + '?.*' + numberPattern.source + ')?.*' + periodPattern.source,
+                'i'
+            );
+    
+        for (const line of lines) {
+            const normalized = line.replace(/\\s+/g, ' ').trim();
+    
+            if (salaryRegex.test(normalized)) {
+                // додатковий safety-check: має бути хоча б одне число
+                if (/\\d/.test(normalized)) {
+                    return normalized;
+                }
+            }
+        }
+    
+        return null;
     }
 
     function parseSalaryFromText(text) {
@@ -272,6 +318,7 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
 
     const results = [];
     let prevJobId = null;
+    let prevDescription = null;
 
     for (let i = 0; i < jobs.length; i++) {
         const job = jobs[i];
@@ -284,10 +331,11 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
 
             job.click();
 
-            const { panel, jobId, about } =
-                await waitForJobLoad(prevJobId);
+            const { panel, jobId, about, description } =
+                await waitForJobLoad(prevJobId, prevDescription);
 
             prevJobId = jobId;
+            prevDescription = description;
 
             const result = extractJob(job, panel, about);
 
@@ -579,11 +627,11 @@ export const parse = (data) => {
                 }
             }
 
-            // Витягаємо salary з description якщо null або невалідне
-            let salary = jobData.salary
-            if (!salary || typeof salary !== 'number') {
-                salary = parseSalary(jobData.description || '')
-            }
+            // // Витягаємо salary з description якщо null або невалідне
+            // let salary = jobData.salary
+            // if (!salary || typeof salary !== 'number') {
+            //     salary = parseSalary(jobData.description || '')
+            // }
 
             const job = {
                 parser: name,
@@ -591,7 +639,7 @@ export const parse = (data) => {
                 title: jobData.title || '',
                 company: jobData.company || '',
                 country: location || '',
-                salary: salary,
+                salary: jobData.salary,
                 datePublish: null,
                 description: jobData.description || '',
                 href: jobData.url || '',

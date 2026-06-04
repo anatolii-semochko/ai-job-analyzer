@@ -6,8 +6,8 @@ import jobrightParser from './sources/jobright'
 import jobgetherParser from './sources/jobgether'
 
 export const parsers = {
-    dou: douParser,
     linkedin: linkedinParser,
+    dou: douParser,
     djinni: djinniParser,
     workua: workuaParser,
     jobright: jobrightParser,
