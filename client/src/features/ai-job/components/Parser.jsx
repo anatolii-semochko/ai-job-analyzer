@@ -166,11 +166,8 @@ const Parser = ({ onUpdate }) => {
             setError('Failed to read file')
         }
         reader.readAsText(file)
-    }
 
-    const handleParseUploadedFile = () => {
-        if (!uploadedFile) return
-        handleParseData(inputData)
+        handleParse();
     }
 
     const handleSaveJobs = async () => {
@@ -234,23 +231,6 @@ const Parser = ({ onUpdate }) => {
                             </select>
                         </div>
 
-                        <div className="mb-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
-                            <label className="form-label">URL / HTML / JSON</label>
-                            <textarea
-                                className="form-control flex-grow-1"
-                                value={inputData}
-                                onChange={(e) => setInputData(e.target.value)}
-                                placeholder="Paste URL, HTML or JSON data here..."
-                                style={{
-                                    fontFamily: 'monospace',
-                                    fontSize: '12px',
-                                    minHeight: '200px',
-                                    resize: 'none',
-                                    overflowX: 'hidden'
-                                }}
-                            />
-                        </div>
-
                         <div className="d-flex gap-2 mb-3 flex-shrink-0">
                             {isUrl ? (
                                 <button
@@ -277,8 +257,7 @@ const Parser = ({ onUpdate }) => {
                             )}
                         </div>
 
-                        <div className="flex-shrink-0">
-                            <label className="form-label">Or upload file:</label>
+                        <div className="flex-shrink-0 mb-3">
                             <input
                                 type="file"
                                 className="form-control"
@@ -286,20 +265,22 @@ const Parser = ({ onUpdate }) => {
                                 onChange={handleFileUpload}
                                 disabled={parsing || fetching}
                             />
-                            {uploadedFile && (
-                                <div className="mt-2">
-                                    <small className="text-muted">
-                                        Uploaded: {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(1)} KB)
-                                    </small>
-                                    <button
-                                        className="btn btn-sm btn-outline-primary ms-2"
-                                        onClick={handleParseUploadedFile}
-                                        disabled={parsing || !inputData.trim()}
-                                    >
-                                        {parsing ? 'Parsing...' : 'Parse File'}
-                                    </button>
-                                </div>
-                            )}
+                        </div>
+
+                        <div className="mb-3 flex-grow-1 d-flex flex-column" style={{ minHeight: 0 }}>
+                            <textarea
+                                className="form-control flex-grow-1"
+                                value={inputData}
+                                onChange={(e) => setInputData(e.target.value)}
+                                placeholder="Paste URL, HTML or JSON data here..."
+                                style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: '12px',
+                                    minHeight: '200px',
+                                    resize: 'none',
+                                    overflowX: 'hidden'
+                                }}
+                            />
                         </div>
 
                         {error && (
