@@ -313,14 +313,27 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                                     className="btn btn-outline-secondary btn-sm"
                                     onClick={async () => {
                                         try {
+                                            // Convert <br> tags to \n before extracting text
+                                            let htmlContent = job.description
+                                                .replace(/<br\s*\/?>/gi, '\n')
+                                                .replace(/<\/p>/gi, '\n')
+                                                .replace(/<\/div>/gi, '\n')
+                                                .replace(/<\/li>/gi, '\n')
+
                                             // Extract text from HTML
                                             const tempDiv = document.createElement('div')
-                                            tempDiv.innerHTML = job.description
-                                            const plainText = tempDiv.textContent || tempDiv.innerText || ''
-    
+                                            tempDiv.innerHTML = htmlContent
+                                            let plainText = tempDiv.textContent || tempDiv.innerText || ''
+
+                                            // Clean up extra whitespace and normalize line breaks
+                                            plainText = plainText
+                                                .replace(/\n\s*\n\s*\n/g, '\n\n')  // Remove extra line breaks
+                                                .replace(/[ \t]+/g, ' ')          // Normalize spaces
+                                                .trim()
+
                                             // Copy to clipboard
                                             await navigator.clipboard.writeText(plainText)
-    
+
                                             // Visual feedback
                                             const btn = document.activeElement
                                             const originalText = btn.textContent
