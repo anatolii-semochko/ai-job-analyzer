@@ -27,7 +27,7 @@ const parseRatings = (response) => {
 
         const data = JSON.parse(jsonMatch[0])
 
-        const intFields = ['rateProfLevel', 'rateSkills', 'rateCompanyType', 'rateSalary', 'rateExpectations']
+        const intFields = ['rateProfLevel', 'rateSkills', 'rateCompanyType', 'rateLocation', 'rateSalary', 'rateExpectations']
         const result = {}
 
         for (const field of intFields) {
@@ -53,6 +53,7 @@ const parseRatings = (response) => {
                 profLevel: data.explain.profLevel || null,
                 skills: data.explain.skills || null,
                 companyType: data.explain.companyType || null,
+                location: data.explain.location || null,
                 salary: data.explain.salary || null,
                 expectations: data.explain.expectations || null,
                 total: data.explain.total || null,

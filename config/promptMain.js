@@ -3,6 +3,7 @@ Analyze one vacancy per request and rate how well it fits the candidate on a sca
 - rateProfLevel: seniority level fit (junior/middle/senior match)
 - rateSkills: tech stack fit (required technologies vs candidate's skills)
 - rateCompanyType: company type fit (product/outsource/other)
+- rateLocation: my current location fit - the level of permission the company to work from my current location (it happens that the company restricts work within specific locations)
 - rateSalary: salary fit (offered vs candidate's expectations)
 - rateExpectations: fit with candidate's preferred domains and priorities
 - rate: overall score (one decimal place, e.g. 7.5)
@@ -19,6 +20,7 @@ INSTRUCTIONS:
   "rateProfLevel": <integer 1-10>,
   "rateSkills": <integer 1-10>,
   "rateCompanyType": <integer 1-10>,
+  "rateLocation": <integer 1-10>,
   "rateSalary": <integer 1-10>,
   "rateExpectations": <integer 1-10>,
   "rate": <float 0.0-10.0, one decimal place>,
@@ -26,6 +28,7 @@ INSTRUCTIONS:
     "profLevel": "<short explanation>",
     "skills": "<short explanation>",
     "companyType": "<short explanation>",
+    "location": "<short explanation>",
     "salary": "<short explanation>",
     "expectations": "<short explanation>",
     "total": "<short explanation>"

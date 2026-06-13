@@ -62,6 +62,7 @@ export const rateFields = [
     { key: 'rateProfLevel', explainKey: 'profLevel', label: 'Level', title: 'Professional Level (Junior/Middle/Senior)' },
     { key: 'rateSkills', explainKey: 'skills', label: 'Skills', title: 'Tech Stack Fit' },
     { key: 'rateCompanyType', explainKey: 'companyType', label: 'Type', title: 'Company Type (Product/Outsource)' },
+    { key: 'rateLocation', explainKey: 'location', label: 'Location', title: 'Location fit' },
     { key: 'rateSalary', explainKey: 'salary', label: 'Salary', title: 'Salary Fit' },
     { key: 'rateExpectations', explainKey: 'expectations', label: 'Expect', title: 'Expectations (AI/Blockchain)' },
     { key: 'rate', explainKey: 'total', label: 'Total', title: 'Overall Rating' },

@@ -124,6 +124,7 @@ export const saveRatings = async (hash, ratings) => {
         rateCompanyType: ratings.rateCompanyType ?? existingJob.rateCompanyType,
         rateSalary: ratings.rateSalary ?? existingJob.rateSalary,
         rateExpectations: ratings.rateExpectations ?? existingJob.rateExpectations,
+        rateLocation: ratings.rateLocation ?? existingJob.rateLocation,
         rate: ratings.rate ?? existingJob.rate,
         ratesExplain: ratings.ratesExplain ?? existingJob.ratesExplain,
     }

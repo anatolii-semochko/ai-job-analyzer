@@ -62,6 +62,7 @@ export const createJob = (data) => {
         rateCompanyType: data.rateCompanyType || null,
         rateSalary: data.rateSalary || null,
         rateExpectations: data.rateExpectations || null,
+        rateLocation: data.rateLocation || null,
         rate: data.rate || null,
         ratesExplain: data.ratesExplain || null,
 
@@ -99,6 +100,7 @@ export const updateJob = (existingJob, newData) => {
         rateCompanyType: newData.rateCompanyType ?? existingJob.rateCompanyType,
         rateSalary: newData.rateSalary ?? existingJob.rateSalary,
         rateExpectations: newData.rateExpectations ?? existingJob.rateExpectations,
+        rateLocation: newData.rateLocation ?? existingJob.rateLocation,
         rate: newData.rate ?? existingJob.rate,
         ratesExplain: newData.ratesExplain ?? existingJob.ratesExplain,
 
