@@ -1,0 +1,284 @@
+{
+  "cvExamples": {
+    "titleList": [
+      "Senior Full Stack Engineer",
+      "Senior Full Stack Engineer (Node.js / React)",
+      "Senior PHP / Symfony Engineer",
+      "Senior Backend Engineer",
+      "Senior Node.js Engineer",
+      "Senior Software Engineer",
+      "Senior Full Stack Web Engineer"
+    ],
+
+    "titleStack": {
+      "main": [
+        "Node.js",
+        "React",
+        "Symfony"
+      ],
+      "dynamic": [
+        "TypeScript",
+        "NestJS",
+        "Vue.js",
+        "SaaS",
+        "Enterprise Systems",
+        "Distributed Systems",
+        "Cloud",
+        "AWS",
+        "AI Integrations",
+        "Agentic Workflows",
+        "Workflow Automation",
+        "DDD",
+        "Event-Driven Architecture",
+        "Microservices",
+        "Web3",
+        "Solana"
+      ]
+    },
+
+    "coreCompetencies": {
+      "main": [
+        "Software Architecture",
+        "Full Stack Development",
+        "Backend Engineering",
+        "API Design & Integrations"
+      ],
+      "dynamic": [
+        "System Integration",
+        "Performance Optimization",
+        "Event-Driven Architecture",
+        "Distributed Systems",
+        "CI/CD",
+        "Technical Leadership",
+        "Enterprise Applications",
+        "SaaS Platforms",
+        "Cloud-Native Applications",
+        "Microservices Architecture",
+        "Scalable Backend Systems",
+        "High-Load Systems",
+        "Real-Time Applications",
+        "Workflow Automation",
+        "AI Integrations",
+        "Agentic Workflows",
+        "LLM Applications",
+        "Web3 Applications",
+        "Blockchain Solutions",
+        "Payment Systems",
+        "Financial Systems",
+        "Booking Platforms",
+        "Logistics Systems",
+        "Data Processing Pipelines",
+        "Background Processing",
+        "Asynchronous Processing",
+        "Message Queue Systems",
+        "Business Process Automation",
+        "Domain-Driven Design (DDD)",
+        "Clean Architecture",
+        "System Modernization",
+        "Legacy System Migration",
+        "Cloud Integrations",
+        "Third-Party Integrations",
+        "REST API Development",
+        "Technical Mentoring",
+        "Cross-Functional Collaboration",
+        "Stakeholder Communication",
+        "Agile Development",
+        "Remote Team Collaboration",
+        "Product Development",
+        "Customer-Facing Applications",
+        "Security Best Practices",
+        "Observability & Monitoring",
+        "DevOps Collaboration",
+        "Infrastructure Automation",
+        "Data-Intensive Applications"
+      ]
+    },
+
+    "professionalSummaryExamples": {
+
+      "fullStack":
+      "Senior Full Stack Engineer with 15+ years of experience designing and delivering scalable SaaS platforms, enterprise systems, automation solutions, and customer-facing web applications. Strong expertise across the full software development lifecycle, software architecture, backend development, frontend engineering, API integrations, and business-critical systems. Over the last 8 years, worked as a B2B contractor for European companies, including 7 years in fully remote distributed teams of 1 to 150 engineers across multiple time zones. Based in Albania, Ukrainian, operating as a legal Ukrainian B2B contractor and open to B2B, permanent employment, and relocation. Experienced in delivering projects similar to this role, selecting the most relevant project from previous experience.",
+
+      "fullStackNodeReact":
+      "Senior Full Stack Engineer specializing in scalable backend services with Node.js, Express, NestJS, Symfony, and modern frontend development with React and TypeScript. Experienced in designing REST APIs, asynchronous processing, distributed systems, and cloud-ready applications. Strong background building SaaS and enterprise products while collaborating remotely with international engineering teams. Include the most relevant project matching the vacancy.",
+
+      "fullStackSymfony":
+      "Senior PHP / Symfony Engineer with 15+ years of commercial experience building enterprise web platforms, SaaS products, business automation systems, and high-performance backend services. Experienced with Symfony architecture, API integrations, asynchronous workflows, RabbitMQ, Docker, and modern frontend technologies including React and Vue.js. Proven track record delivering long-term production systems for international clients in remote-first environments. Mention the most relevant project from previous experience.",
+
+      "fullStackWeb3":
+      "Senior Full Stack Engineer with commercial experience building Web3 products, Solana applications, wallet integrations, NFT platforms, blockchain validation services, and modern React frontends. Combined with 15+ years of enterprise software engineering experience, brings strong backend architecture, API integration, asynchronous processing, and scalable application design. Include the most relevant blockchain project from previous experience.",
+
+      "fullStackAI":
+      "Senior Full Stack Engineer experienced in integrating AI services, OpenAI APIs, LLM-powered workflows, and business process automation into production systems. Strong background in backend architecture, workflow automation, API integrations, distributed systems, and scalable SaaS applications. Experienced delivering AI-assisted business solutions while working remotely with international engineering teams. Mention the most relevant AI-related project.",
+
+      "backend":
+      "Senior Backend Engineer with extensive experience designing scalable APIs, distributed backend services, asynchronous processing, event-driven architectures, database optimization, and enterprise integrations. Strong background in PHP, Symfony, Node.js, RabbitMQ, Redis, SQL databases, Docker, and production system maintenance. Worked remotely for European companies delivering business-critical backend systems.",
+
+      "lead":
+      "Senior Full Stack Engineer with extensive experience leading technical initiatives, driving software architecture decisions, collaborating directly with stakeholders, and delivering complex business platforms throughout the full software development lifecycle. Comfortable working independently as well as within distributed engineering organizations of up to 150 people while mentoring developers and contributing to long-term technical strategy."
+    },
+
+    "technicalStackExample": "Technical Stack\n• Backend: Node.js, Express.js, NestJS, TypeScript, PHP, Symfony\n• Frontend: React, Vue.js, Angular, jQuery\n• Databases: MySQL, PostgreSQL, MongoDB, IndexedDB, Redis\n• Infrastructure: Ubuntu, Docker, RabbitMQ, WebSockets, Nginx\n• Integrations:\n  • Cloud (AWS, REST APIs, Third-Party Integrations)\n  • OpenAI (APIs, AI Agents, Workflow Automation)\n  • Web3 (Solana, Rust Smart Contracts, NFTs, Wallets)\n• Tools: Git, AI coding agents (Codex, Claude)",
+
+    "coverLetterExamples": [
+      "Dear Hiring Team,\n\nI am applying for the Senior Software Engineer position. With more than 15 years of commercial experience building SaaS platforms, enterprise applications, and large-scale web systems, I have worked across the full software development lifecycle, from architecture and implementation to production support.\n\nMy background combines PHP, Symfony, Node.js, React, modern API integrations, distributed systems, and asynchronous processing. During the last eight years, I have worked remotely as a B2B contractor with European companies, collaborating successfully with distributed engineering teams across multiple time zones.\n\nWhat particularly interests me about this opportunity is the combination of modern technologies, engineering challenges, and the opportunity to contribute directly to a product with real business impact. I believe my experience building scalable production systems and delivering business-critical features would allow me to become productive quickly.\n\nThank you for your consideration. I would be happy to discuss how my experience aligns with your team's goals.",
+
+      "Dear Hiring Team,\n\nI am interested in joining your engineering team because the role closely matches both my technical background and the types of products I have been building throughout my career. I have extensive experience designing backend services, developing modern web applications, integrating third-party APIs, and maintaining long-term production systems.\n\nThroughout my career I have worked with international teams, participated in architectural decisions, and delivered reliable software for thousands of end users. I enjoy solving complex engineering problems while keeping business objectives in focus.\n\nI would welcome the opportunity to contribute my experience while continuing to learn from a strong engineering culture.",
+
+      "Dear Hiring Team,\n\nYour position immediately caught my attention because it combines technologies and engineering challenges that closely match my professional experience. I have spent more than fifteen years building enterprise platforms, SaaS products, automation systems, and customer-facing applications using PHP, Symfony, Node.js, React, relational databases, and event-driven architectures.\n\nI value clean architecture, maintainable code, and close collaboration with product teams. Having worked remotely for many years, I am comfortable taking ownership, communicating asynchronously, and delivering consistently in distributed teams.\n\nI look forward to discussing how I can contribute to your product."
+    ],
+
+    "whyCompanyLetterExamples": [
+      "This opportunity stands out because it combines modern engineering practices with meaningful product development. I enjoy working on software that solves real business problems while requiring thoughtful architecture and long-term maintainability. The technology stack closely aligns with my experience, making this a role where I can contribute from day one while continuing to grow.",
+
+      "I am particularly interested in your company because of the product itself rather than simply the technology stack. Throughout my career I have preferred working on long-term products where engineering decisions have measurable business impact. I believe my background building scalable production systems and collaborating with distributed teams would fit well within your engineering organization.",
+
+      "The position matches both my technical background and the direction in which I want to continue developing professionally. I appreciate companies that invest in modern software architecture, collaborative engineering culture, and continuous product improvement. The opportunity to contribute my experience while learning from experienced engineers is especially appealing.",
+
+      "I am looking for a long-term opportunity where I can take ownership of meaningful engineering work rather than simply implementing isolated tasks. Your product, technical challenges, and engineering approach closely match the type of projects I have successfully delivered throughout my career.",
+
+      "Beyond the technology stack, I am interested in the engineering culture behind this role. I enjoy working with teams that value technical quality, pragmatic decision-making, and continuous improvement. Based on the role description, I believe my experience with scalable systems, remote collaboration, and business-focused software development would allow me to contribute effectively."
+    ],
+
+    "generationConfig": {
+      "tone": "Professional, concise, technically credible, ATS-friendly",
+      "mode": ["ATS", "HumanReadable"],
+      "target": {
+        "atsScoreOptimization": true,
+        "keywordMatchingStrategy": "weighted_frequency",
+        "jobKeywordCoverageTarget": 0.85
+      },
+      "rolePositioning": {
+        "frontendJob": "Frontend Engineer",
+        "backendJob": "Backend Engineer",
+        "balanced": "Full Stack Engineer"
+      },
+      "hrOptimization": {
+        "reduceComplexSentences": true,
+        "limitParagraphLength": 3,
+        "increaseKeywordVisibility": true
+      },
+      "negativeKeywordFiltering": {
+        "enable": true,
+        "rules": [
+          {
+            "ifJobFrontend": ["remove_heavy_backend_focus"],
+            "ifJobBackend": ["reduce_frontend_noise"]
+          }
+        ]
+      },
+      "adaptToVacancy": true,
+      "optimizeForATS": true,
+      "neverInventExperience": true,
+      "neverInventProjects": true,
+      "neverInventTechnologies": true,
+      "neverInventResponsibilities": true,
+      "neverInventCompanyFacts": true,
+      "prioritizeVacancyKeywords": true,
+      "selectMostRelevantProject": true,
+      "preferConcreteStatements": true,
+      "preferBusinessImpact": true,
+      "avoidMarketingLanguage": true,
+      "avoidBuzzwords": true,
+      "keepSentencesShort": true,
+      "keepLanguageNatural": true,
+      "outputLimits": {
+        "titleStackItems": "6-8",
+        "coreCompetencies": "12 (7 main + 5 dynamic)",
+        "professionalSummaryWords": "110-170",
+        "coverLetterWords": "180-280",
+        "whyCompanyWords": "70-120"
+      },
+      "sectionRules": {
+        "frontendFitScore": "0-100",
+        "backendFitScore": "0-100",
+        "fullstackFitScore": "0-100",
+        "frontendBias": true,
+        "backendBias": false,
+        
+        "titleStrategy": {
+          "frontendPriorityBoost": true,
+          "ifJobFrontendThenPreferFrontendTitle": true
+        },
+        "titleStackRules": {
+          "frontendJob": [
+            "React",
+            "JavaScript",
+            "Frontend Development",
+            "UI Engineering"
+          ],
+          "backendJob": [
+            "Node.js",
+            "Symfony"
+          ]
+        },
+        "professionalSummary": {
+          "includeYearsOfExperience": true,
+          "includePrimaryTechnologyExperience": true,
+          "includeRemoteExperience": true,
+          "includeEmploymentStatus": true,
+          "includeRelevantProject": true,
+          "focusOnVacancy": true,
+          "avoidFirstPerson": true,
+          "avoidGenericClaims": true,
+          "avoidSoftSkillLists": true,
+          "injectTop3JobKeywords": true,
+          "frontLoadRelevantStack": true,
+          "reduceBackendWhenFrontendJob": true
+        },
+        "coreCompetencies": {
+          "useMainCompetencies": true,
+          "adaptDynamicCompetencies": true,
+          "prioritizeVacancyKeywords": true,
+          "avoidTechnologyNames": true,
+          "avoidDuplicates": true,
+          "maxSemanticDistance": true,
+          "limitIrrelevantDomains": true,
+          "boostFrontendForFrontendJobs": true
+        },
+        "technicalStack": {
+          "keepTemplateStructure": true,
+          "addRelevantTechnologies": true,
+          "preserveTechnologyGroups": true,
+          "doNotAddUnknownTechnologies": true,
+          "keepOrderingLogical": true,
+          "rankByJobRelevance": true,
+          "maxItemsPerSection": 18,
+          "hideIrrelevantDomains": true
+        },
+        "coverLetter": {
+          "includeRelevantProject": true,
+          "includeRemoteExperience": true,
+          "includeRelevantTechnologies": true,
+          "explainWhyCandidateFits": true,
+          "avoidRepeatingResume": true,
+          "avoidGenericMotivation": true,
+          "avoidFlattery": true,
+          "avoidCompanyPraiseWithoutEvidence": true,
+          "avoidMentioningValuesUnlessPresent": true,
+          "soundHuman": true,
+          "endWithCallToAction": true
+        },
+        "whyCompany": {
+          "referenceBusinessDomain": true,
+          "referenceProductIfKnown": true,
+          "referenceEngineeringChallenges": true,
+          "referenceRelevantExperience": true,
+          "avoidGenericMotivation": true,
+          "avoidFlattery": true,
+          "avoidInventingCompanyFacts": true,
+          "soundAuthentic": true
+        },
+        "adaptationPriority": [
+          "Match vacancy technologies",
+          "Match engineering role",
+          "Match business domain",
+          "Reuse existing experience only",
+          "Select the most relevant project",
+          "Optimize for ATS keywords",
+          "Keep language concise"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "profile": {
+    "totalExperience": 15,
+    "remoteYears": 7,
+    "contractorYears": 8,
+    "nationality": "Ukrainian",
+    "location": "Albania",
+    "employmentTypes": ["Contract", "Full-time", "Part-time", "Freelance", "Remote"],
+    "relocation": true,
+    "languages": {
+      "English": "Professional Working Proficiency",
+      "Ukrainian": "Native",
+      "Polish": "Intermediate",
+      "Russian": "Native"
+    },
+    "education": {
+      "school": "Lviv Polytechnic National University",
+      "fieldOfStudy": "Computer Science and Information Technologies",
+      "degree": "Master’s degree"
+    },
+    "linkedinUrl": "https://www.linkedin.com/in/anatolii-semochko",
+    "githubUrl": "https://github.com/anatolii-semochko?tab=repositories"
+  },
+  "skills": {
+    "primary": [
+      { "name": "PHP", "weight": 10 },
+      { "name": "Symfony", "weight": 10 },
+      { "name": "Yii2", "weight": 8 },
+      { "name": "React", "weight": 10 },
+      { "name": "Node.js", "weight": 8 },
+      { "name": "Express.js", "weight": 8 },
+      { "name": "Next.js", "weight": 8 },
+      { "name": "MySQL", "weight": 10 },
+      { "name": "TypeScript", "weight": 7 }
+    ],
+    "secondary": [
+      { "name": "Vue.js", "weight": 8 },
+      { "name": "Angular", "weight": 6 },
+      { "name": "MongoDB", "weight": 6 },
+      { "name": "PostgreSQL", "weight": 6 },
+      { "name": "Web3", "weight": 8 },
+      { "name": "Solana", "weight": 8 },
+      { "name": "NFT", "weight": 8 },
+      { "name": "Metaplex", "weight": 8 }
+    ],
+    "frontendCapabilities": {
+      "spaDevelopment": true,
+      "uiPerformanceOptimization": true,
+      "responsiveDesign": true,
+      "crossBrowserCompatibility": true,
+      "stateManagementExperience": true,
+      "offLineApplications": true
+    },
+    "tools": [
+      { "name": "RabbitMQ", "weight": 7 },
+      { "name": "Redis", "weight": 7 },
+      { "name": "OpenAI", "weight": 8 },
+      { "name": "AWS", "weight": 7 },
+      { "name": "Docker", "weight": 10 }
+    ],
+    "web3Capabilities": {
+      "blockchainDevelopment": true,
+      "solanaEcosystem": true,
+      "nftDevelopment": true,
+      "walletIntegration": true,
+      "walletDevelopment": true
+    }
+  },
+  "professionalExperience": [
+    {
+      "title": "Platinium Group — Senior Full Stack Engineer",
+      "subtitle": "Remote Contract (Monaco) | Team: 90 engineers | Sep 2019 – Apr 2026",
+      "stack": [
+        "Symfony",
+        "PrestaShop",
+        "Twig",
+        "Vue.js",
+        "Angular",
+        "jQuery",
+        "RabbitMQ",
+        "Redis",
+        "MySQL",
+        "REST APIs",
+        "AWS S3"
+      ],
+      "description": [
+        "Designed and delivered large-scale international sports travel and ticket booking SaaS platforms processing 2M+ tickets annually",
+        "Supported multi-region systems used across 25+ countries with localization for domains, languages, currencies, and payment providers",
+        "Developed and maintained B2B platforms and internal back-office systems serving 400+ business clients",
+        "Designed and implemented event-driven asynchronous workflows using RabbitMQ for bulk booking, check-in processing, exports, notifications, data parsing, and scheduled jobs",
+        "Contributed to migration from legacy PrestaShop architecture to Symfony-based backend and modern SPA frontend stack",
+        "Built and maintained Vue.js SPA applications integrated with REST APIs following Domain-Driven Design (DDD) principles",
+        "Led migration of storage infrastructure to AWS S3 for scalable media and data handling",
+        "Optimized system performance through database tuning, caching strategies, and REST API improvements",
+        "Maintained and evolved long-term production systems ensuring high availability, stability, and continuous feature delivery",
+        "Worked in large-scale engineering organization with 150+ engineers across distributed teams"
+      ],
+      "domains": ["frontend", "backend", "architecture", "enterprise", "spa", "angular", "vue"]
+    },
+    {
+      "title": "Echo UA — Full Stack Developer",
+      "subtitle": "Lviv | Team: 65 engineers | Aug 2018 – Aug 2019",
+      "stack": [
+        "PrestaShop",
+        "Angular",
+        "jQuery",
+        "Smarty",
+        "MySQL",
+        "REST APIs"
+      ],
+      "description": [
+        "Worked in distributed engineering teams delivering international SaaS products",
+        "Implemented backend and frontend features for sports event booking systems with focus on scalability and reliability",
+        "Built and extended partner and customer workflow modules including administration and integration features",
+        "Developed and delivered a bulk booking system for B2B clients improving processing efficiency",
+        "Improved core booking workflow performance and system reliability under high load",
+        "Migrated legacy Smarty-based frontend components to Angular SPA architecture with REST API integration"
+      ],
+      "domains": ["frontend", "backend", "enterprise"]
+    },
+    {
+      "title": "Logistic System — Lead Full Stack Developer",
+      "subtitle": "Remote (USA) | Mar 2011 – Jul 2018",
+      "stack": [
+        "Yii2",
+        "React",
+        "JavaScript",
+        "jQuery",
+        "RabbitMQ",
+        "WebSockets",
+        "MySQL",
+        "MongoDB",
+        "REST APIs"
+      ],
+      "description": [
+        "Led small development teams and coordinated full-cycle software delivery processes",
+        "Acted as primary engineer responsible for system architecture, development, deployment, and long-term maintenance",
+        "Designed and developed SaaS platforms for logistics including carrier management, route optimization, cargo tracking, and analytics",
+        "Integrated external systems including government APIs, logistics providers, and third-party data services",
+        "Implemented event-driven architecture for real-time cargo synchronization, route updates, carrier status tracking, and notifications",
+        "Built backend services using RabbitMQ and REST APIs",
+        "Developed real-time communication features including WebSocket-based chat systems",
+        "Created SEO-optimized public websites, data parsers, and automation tools",
+        "Worked directly with product owners and stakeholders to define technical requirements and deliver solutions"
+      ],
+      "domains": ["frontend", "backend", "architecture", "enterprise"]
+    },
+    {
+      "title": "Blockchain Data Registration & Validation Platform",
+      "subtitle": "Full Stack Web3 Project",
+      "stack": [
+        "Node.js",
+        "Express",
+        "Symfony",
+        "Twig",
+        "React",
+        "MySQL",
+        "RabbitMQ",
+        "REST APIs",
+        "AWS S3",
+        "Web3.js"
+      ],
+      "description": [
+        "Built full-stack blockchain validation platform with asynchronous processing and Web3 integrations",
+        "Implemented backend services using Node.js and Express for API and processing layers",
+        "Designed REST APIs and asynchronous processing pipelines for high-throughput operations",
+        "Integrated AI services and external APIs for data validation and enrichment"
+      ],
+      "domains": ["frontend", "backend", "architecture", "enterprise", "Web3", "Crypto", "Blockchain"],
+      "links": [
+        "https://github.com/anatolii-semochko/sevens-platform",
+        "https://github.com/anatolii-semochko/sevens-backoffice",
+        "https://github.com/anatolii-semochko/sevens-smartcontracts"
+      ]
+    },
+    {
+      "title": "Custom Solana Wallet Application",
+      "subtitle": "Web3 Frontend Application",
+      "stack": [
+        "React",
+        "Web3.js"
+      ],
+      "description": [
+        "Developed a React-based non-custodial wallet for the Solana ecosystem",
+        "Implemented support for standard transactions and NFT workflows",
+        "Supported custom Solana fork compatibility",
+        "Integrated Phantom Wallet Adapter for seamless ecosystem compatibility"
+      ],
+      "domains": ["frontend", "Web3", "Crypto", "Blockchain"],
+      "links": [
+        "https://github.com/anatolii-semochko/custom-solana-wallet-react"
+      ]
+    }
+  ]
+}

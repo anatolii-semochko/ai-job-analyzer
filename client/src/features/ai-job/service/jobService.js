@@ -172,6 +172,24 @@ export const saveComments = async (hash, comments) => {
     return { job: updatedJob, action: 'updated' }
 }
 
+export const saveGeneratedData = async (hash, generatedData) => {
+    const db = await getDb()
+    const existingJob = await db.get(STORE_NAME, hash)
+
+    if (!existingJob) {
+        return { job: null, action: 'not_found' }
+    }
+
+    const updatedJob = {
+        ...existingJob,
+        dateUpdate: new Date().toISOString(),
+        generatedData,
+    }
+
+    await db.put(STORE_NAME, updatedJob)
+    return { job: updatedJob, action: 'updated' }
+}
+
 export const saveMessages = async (hash, messages) => {
     const db = await getDb()
     const existingJob = await db.get(STORE_NAME, hash)
@@ -377,6 +395,7 @@ export default {
     save,
     saveRatings,
     saveComments,
+    saveGeneratedData,
     updateFlags,
     updateJobData,
     fetch,
