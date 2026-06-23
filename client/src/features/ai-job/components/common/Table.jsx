@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { JobDetails, RateLabels, RateOverall } from './Components'
 import TableActions from './TableActions'
 import JobStatus from './JobStatus'
-import { getDaysAgo } from '../../utils/dateUtils'
 
 const Table = ({
     jobs = [],
@@ -141,10 +140,6 @@ const Table = ({
                                         ) : (
                                             <span className="text-muted">–</span>
                                         )}
-                                        <br />
-                                        <span className="text-muted small">
-                                            {getDaysAgo(job.datePublish) !== null ? `${getDaysAgo(job.datePublish)}d ago` : '–'}
-                                        </span>
                                     </td>
 
                                     <td>

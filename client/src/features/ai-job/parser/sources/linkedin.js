@@ -3,7 +3,43 @@ export const label = 'LinkedIn'
 
 export const browserScript = `(async function scrapeLinkedInJobs() {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    
+    function showDonePopup(number) {
+        const overlay = document.createElement('div');
+        overlay.style = \`
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+        \`;
 
+        const box = document.createElement('div');
+        box.style = \`
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: sans-serif;
+            text-align: center;
+            min-width: 200px;
+        \`;
+
+        const text = document.createElement('div');
+        text.innerText = 'DONE ' + number;
+        text.style.marginBottom = '12px';
+
+        const btn = document.createElement('button');
+        btn.innerText = 'CLOSE';
+        btn.onclick = () => overlay.remove();
+
+        box.appendChild(text);
+        box.appendChild(btn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+    
     // -----------------------------
     // ROOT PANEL
     // -----------------------------
@@ -363,6 +399,7 @@ export const browserScript = `(async function scrapeLinkedInJobs() {
     a.click();
 
     console.log('DONE');
+    showDonePopup(jobs.length);
     return results;
 })();`
 
