@@ -1,8 +1,9 @@
 import React from 'react'
+import linkedinScript from '../../parser/sources/linkedin2.js?raw'
 
-const LinkedInParser = ({ parser, jobs }) => {
+const LinkedInParser = ({ jobs }) => {
     const handleCopyScript = () => {
-        navigator.clipboard.writeText(parser.browserScript).then(() => {
+        navigator.clipboard.writeText(linkedinScript).then(() => {
             // Could add a toast notification here
         }).catch(err => {
             console.error('Failed to copy script: ', err)
@@ -30,7 +31,7 @@ const LinkedInParser = ({ parser, jobs }) => {
                     className="bg-dark text-light p-2 rounded small"
                     style={{ maxHeight: '300px', overflow: 'auto', fontSize: '11px' }}
                 >
-                    {parser.browserScript}
+                    {linkedinScript}
                 </pre>
                 <p className="small mb-0 mt-2">
                     Після завантаження файлу <code>linkedin_jobs.json</code>, вставте його вміст у поле зліва.
