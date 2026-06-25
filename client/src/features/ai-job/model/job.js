@@ -23,6 +23,7 @@ export const createFullHash = (data) => {
         title: data.title,
         description: data.description,
         salary: data.salary,
+        isDeactivated: data.isDeactivated,
     })
     return generateHash(hashSource)
 }
@@ -61,6 +62,7 @@ export const createJob = (data) => {
         rateCompanyType: data.rateCompanyType || null,
         rateSalary: data.rateSalary || null,
         rateExpectations: data.rateExpectations || null,
+        rateLocation: data.rateLocation || null,
         rate: data.rate || null,
         ratesExplain: data.ratesExplain || null,
 
@@ -68,6 +70,7 @@ export const createJob = (data) => {
         contacted: data.contacted ?? false,
         refused: data.refused ?? false,
         hidden: data.hidden ?? false,
+        isDeactivated: data.isDeactivated ?? false,
 
         status: data.status || null,
         statusDate: data.statusDate || null,
@@ -97,6 +100,7 @@ export const updateJob = (existingJob, newData) => {
         rateCompanyType: newData.rateCompanyType ?? existingJob.rateCompanyType,
         rateSalary: newData.rateSalary ?? existingJob.rateSalary,
         rateExpectations: newData.rateExpectations ?? existingJob.rateExpectations,
+        rateLocation: newData.rateLocation ?? existingJob.rateLocation,
         rate: newData.rate ?? existingJob.rate,
         ratesExplain: newData.ratesExplain ?? existingJob.ratesExplain,
 
@@ -104,6 +108,7 @@ export const updateJob = (existingJob, newData) => {
         contacted: newData.contacted ?? existingJob.contacted ?? false,
         refused: newData.refused ?? existingJob.refused ?? false,
         hidden: newData.hidden ?? existingJob.hidden ?? false,
+        isDeactivated: newData.isDeactivated ?? existingJob.isDeactivated ?? false,
 
         status: newData.status ?? existingJob.status,
         statusDate: newData.statusDate ?? existingJob.statusDate,

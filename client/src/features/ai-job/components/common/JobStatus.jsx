@@ -58,6 +58,17 @@ const JobStatus = ({ job, onJobUpdate }) => {
     const statusConfig = currentStatus ? STATUS_OPTIONS[currentStatus] : null
     const daysAgo = getDaysAgo(job.statusDate)
 
+    const dateCell = (job) => {
+        const dateAdded = getDaysAgo(job.datePublish || job.dateAdd);
+        let sting  = dateAdded ? `${dateAdded}d` : '–';
+
+        if (daysAgo !== null && currentStatus) {
+            sting += daysAgo === 0 ? ' / today' : ` / ${daysAgo}d`;
+        }
+        
+        return sting;
+    }
+
     return (
         <div
             onClick={() => setIsEditing(true)}
@@ -72,17 +83,16 @@ const JobStatus = ({ job, onJobUpdate }) => {
                     fontWeight: '500',
                     color: statusConfig?.color || '#6c757d',
                     backgroundColor: statusConfig?.bg || 'transparent',
-                    border: statusConfig ? `1px solid ${statusConfig.color}30` : '1px solid transparent'
+                    border: statusConfig ? `1px solid ${statusConfig.color}30` : '1px solid transparent',
+                    whiteSpace: 'nowrap', 
                 }}
             >
                 {currentStatus || '–'}
             </span>
             <br/>
-            {daysAgo !== null && currentStatus && (
-                <small style={{ color: '#6c757d', fontSize: '9px', marginTop: '1px' }}>
-                    {daysAgo === 0 ? 'today' : `${daysAgo}d`}
-                </small>
-            )}
+            <small style={{ color: '#6c757d', fontSize: '9px', marginTop: '1px' }}>
+                {dateCell(job)}
+            </small>
         </div>
     )
 }

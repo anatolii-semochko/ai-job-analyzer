@@ -1,144 +1,6 @@
 export const name = 'linkedin'
 export const label = 'LinkedIn'
 
-export const browserScript = `async function scrapeLinkedInJobs() {
-    console.log('🚀 Старт');
-
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const results = [];
-    const seen = new Set();
-
-    function getScrollableContainer() {
-        const candidates = Array.from(document.querySelectorAll('div'));
-
-        return candidates.find(el => {
-            const style = window.getComputedStyle(el);
-            return (
-                (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
-                el.scrollHeight > el.clientHeight &&
-                el.innerText.includes('jobs')
-            );
-        });
-    }
-
-    function collectLinks() {
-        document.querySelectorAll('a.job-card-container__link').forEach(a => {
-            if (a.href) seen.add(a.href);
-        });
-    }
-
-    async function scrollAndCollect() {
-        let container = getScrollableContainer();
-
-        if (!container) {
-            console.log('⚠️ Контейнер не знайдено, скролю всю сторінку');
-            container = document.scrollingElement || document.body;
-        }
-
-        let lastHeight = 0;
-
-        for (let i = 0; i < 25; i++) {
-            container.scrollTo(0, container.scrollHeight);
-            await sleep(800);
-
-            collectLinks();
-
-            if (container.scrollHeight === lastHeight) break;
-            lastHeight = container.scrollHeight;
-        }
-
-        container.scrollTo(0, 0);
-        await sleep(500);
-
-        collectLinks();
-
-        console.log(\`📊 Лінків: \${seen.size}\`);
-    }
-
-    async function waitForContentChange(prevHTML, timeout = 15000) {
-        const start = Date.now();
-
-        while (Date.now() - start < timeout) {
-            const el = document.querySelector('.job-view-layout.jobs-details');
-
-            if (el && el.innerHTML !== prevHTML) {
-                return el;
-            }
-
-            await sleep(300);
-        }
-
-        throw new Error('❌ Контент не оновився');
-    }
-
-    function findLink(href) {
-        return Array.from(document.querySelectorAll('a.job-card-container__link'))
-            .find(a => a.href === href);
-    }
-
-    await scrollAndCollect();
-
-    const allLinks = Array.from(seen);
-    let prevHTML = '';
-
-    console.log(\`🎯 Обробка \${allLinks.length}\`);
-
-    for (let i = 0; i < allLinks.length; i++) {
-        const href = allLinks[i];
-
-        try {
-            console.log(\`👉 \${i + 1}/\${allLinks.length}\`);
-
-            let link = findLink(href);
-
-            if (!link) {
-                window.scrollBy(0, 500);
-                await sleep(500);
-                link = findLink(href);
-            }
-
-            if (!link) {
-                console.log('⚠️ Пропуск (нема в DOM)');
-                continue;
-            }
-
-            link.scrollIntoView({ block: 'center' });
-            await sleep(400);
-
-            link.click();
-
-            const details = await waitForContentChange(prevHTML);
-            prevHTML = details.innerHTML;
-
-            results.push(details.outerHTML);
-
-            console.log('✅ Додано');
-
-            await sleep(700);
-
-        } catch (e) {
-            console.log('❌', e);
-        }
-    }
-
-    console.log('📦 Завершено');
-
-    const blob = new Blob([JSON.stringify(results, null, 2)], {
-        type: 'application/json'
-    });
-
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'jobs_data.json';
-    a.click();
-
-    console.log('✅ Файл готовий');
-
-    return results;
-}
-
-await scrapeLinkedInJobs();`
-
 const htmlToDom = (html) => {
     const parser = new DOMParser()
     return parser.parseFromString(html, 'text/html')
@@ -257,24 +119,79 @@ const parseJobDetail = (html) => {
 
     console.log('[LinkedIn] Parsing job detail...')
 
-    const titleEl = root.querySelector('h1.t-24 a, h1 a[href*="/jobs/view/"], .job-details-jobs-unified-top-card__job-title a')
+    // Try multiple selectors for title
+    const titleSelectors = [
+        'h1.t-24 a',
+        'h1 a[href*="/jobs/view/"]',
+        '.job-details-jobs-unified-top-card__job-title a',
+        '.job-details-jobs-unified-top-card__job-title',
+        '.jobs-unified-top-card__job-title a',
+        '.jobs-unified-top-card__job-title',
+        'h1[data-test="job-title"]',
+        '.job-view-layout h1'
+    ];
+
+    let titleEl = null;
+    for (const selector of titleSelectors) {
+        titleEl = root.querySelector(selector);
+        if (titleEl) break;
+    }
+
     const title = titleEl ? titleEl.textContent.trim() : ''
     console.log('[LinkedIn] Title:', title)
 
-    const href = titleEl?.getAttribute('href') || ''
+    const href = titleEl?.getAttribute('href') || titleEl?.closest('a')?.getAttribute('href') || ''
     const fullHref = href.startsWith('http') ? href : (href ? `https://www.linkedin.com${href}` : null)
     const itemId = extractJobId(href)
 
-    const company = getText(root, '.job-details-jobs-unified-top-card__company-name a')
+    // Try multiple selectors for company
+    const companySelectors = [
+        '.job-details-jobs-unified-top-card__company-name a',
+        '.job-details-jobs-unified-top-card__company-name',
+        '.jobs-unified-top-card__company-name a',
+        '.jobs-unified-top-card__company-name',
+        '[data-test="job-company-name"]'
+    ];
 
-    const tertiaryText = getText(root, '.job-details-jobs-unified-top-card__tertiary-description-container')
+    let company = '';
+    for (const selector of companySelectors) {
+        company = getText(root, selector);
+        if (company) break;
+    }
+
+    // Try multiple selectors for tertiary description (location, date, etc.)
+    const tertiarySelectors = [
+        '.job-details-jobs-unified-top-card__tertiary-description-container',
+        '.jobs-unified-top-card__tertiary-description',
+        '.job-details-top-card__tertiary-description'
+    ];
+
+    let tertiaryText = '';
+    for (const selector of tertiarySelectors) {
+        tertiaryText = getText(root, selector);
+        if (tertiaryText) break;
+    }
 
     const locationMatch = tertiaryText.match(/^([^·]+)/)
     const country = locationMatch ? locationMatch[1].trim() : ''
 
     const datePublish = parseDate(tertiaryText)
 
-    const descriptionEl = root.querySelector('#job-details .mt4, .jobs-description-content__text')
+    // Try multiple selectors for description
+    const descriptionSelectors = [
+        '#job-details .mt4',
+        '.jobs-description-content__text',
+        '.job-details-jobs-unified-top-card .jobs-description',
+        '.jobs-description__text',
+        '.job-view-layout .jobs-description'
+    ];
+
+    let descriptionEl = null;
+    for (const selector of descriptionSelectors) {
+        descriptionEl = root.querySelector(selector);
+        if (descriptionEl) break;
+    }
+
     let description = descriptionEl ? descriptionEl.innerHTML.trim() : ''
     description = description.replace(/<!--.*?-->/g, '')
 
@@ -302,32 +219,69 @@ const parseJobDetail = (html) => {
 export const parse = (data) => {
     console.log('[LinkedIn] Starting parse...')
 
-    let htmlArray = []
+    let jobsArray = []
 
     if (typeof data === 'string') {
         const trimmed = data.trim()
         if (trimmed.startsWith('[')) {
             try {
-                htmlArray = JSON.parse(trimmed)
-                console.log('[LinkedIn] Parsed JSON array with', htmlArray.length, 'items')
+                jobsArray = JSON.parse(trimmed)
+                console.log('[LinkedIn] Parsed JSON array with', jobsArray.length, 'items')
             } catch (e) {
                 console.error('[LinkedIn] Failed to parse JSON:', e)
-                htmlArray = [trimmed]
+                return []
             }
         } else {
-            htmlArray = [trimmed]
+            return []
         }
     } else if (Array.isArray(data)) {
-        htmlArray = data
+        jobsArray = data
     }
 
     const jobs = []
 
-    for (let i = 0; i < htmlArray.length; i++) {
-        console.log(`[LinkedIn] Processing item ${i + 1}/${htmlArray.length}`)
+    for (let i = 0; i < jobsArray.length; i++) {
+        console.log(`[LinkedIn] Processing item ${i + 1}/${jobsArray.length}`)
         try {
-            const job = parseJobDetail(htmlArray[i])
-            if (job) {
+            const jobData = jobsArray[i]
+
+            if (!jobData || typeof jobData !== 'object') {
+                console.log('[LinkedIn] Skipping invalid job data')
+                continue
+            }
+
+            // Виправляємо location якщо це title
+            let location = jobData.location
+            if (!location || location === jobData.title || location.includes('Engineer') || location.includes('Developer')) {
+                // Шукаємо в description
+                const descLocationMatch = jobData.description?.match(/<strong>Location:\s*<\/strong>([^<]+)/i)
+                if (descLocationMatch) {
+                    location = descLocationMatch[1].trim()
+                } else {
+                    location = 'Remote' // default fallback
+                }
+            }
+
+            // // Витягаємо salary з description якщо null або невалідне
+            // let salary = jobData.salary
+            // if (!salary || typeof salary !== 'number') {
+            //     salary = parseSalary(jobData.description || '')
+            // }
+
+            const job = {
+                parser: name,
+                itemId: jobData.jobId || null,
+                title: jobData.title || '',
+                company: jobData.company || '',
+                country: location || '',
+                salary: jobData.salary,
+                datePublish: null,
+                description: jobData.description || '',
+                href: jobData.url || '',
+                isDeactivated: jobData.isDeactivated || false
+            }
+
+            if (job.title) {
                 jobs.push(job)
                 console.log('[LinkedIn] Job added:', job.title)
             }
@@ -342,9 +296,32 @@ export const parse = (data) => {
 
 export const validate = (data) => {
     if (typeof data !== 'string') return false
+
+    // Перевіряємо чи це новий формат JSON
+    const trimmed = data.trim()
+    if (trimmed.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(trimmed)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // Перевіряємо перший елемент на наявність полів LinkedIn job
+                const first = parsed[0]
+                return first &&
+                       typeof first === 'object' &&
+                       (first.jobId || first.url?.includes('linkedin.com/jobs/view/') ||
+                        first.title || first.company)
+            }
+        } catch (e) {
+            // Якщо не парситься як JSON, перевіряємо старий формат
+        }
+    }
+
+    // Старий формат (HTML)
     return data.includes('linkedin') ||
            data.includes('job-details') ||
-           data.includes('jobs-unified-top-card')
+           data.includes('jobs-unified-top-card') ||
+           data.includes('job-details-jobs-unified-top-card') ||
+           data.includes('jobs-search-results') ||
+           data.includes('/jobs/view/')
 }
 
 export default {
@@ -352,5 +329,4 @@ export default {
     label,
     parse,
     validate,
-    browserScript,
 }

@@ -44,13 +44,19 @@ export const save = async (jobData) => {
     const existingJob = await db.get(STORE_NAME, hash)
 
     if (!existingJob) {
-        const job = createJob(jobData)
+        const job = createJob({
+            ...jobData,
+            status: jobData.isDeactivated ? 'Deactivated' : jobData.status
+        })
         await db.put(STORE_NAME, job)
         return { job, action: 'created' }
     }
 
     if (isJobChanged(existingJob, jobData)) {
-        const job = updateJob(existingJob, jobData)
+        const job = updateJob(existingJob, {
+            ...jobData,
+            status: jobData.isDeactivated ? 'Deactivated' : (jobData.status || existingJob.status)
+        })
         await db.put(STORE_NAME, job)
         return { job, action: 'updated' }
     }
@@ -118,6 +124,7 @@ export const saveRatings = async (hash, ratings) => {
         rateCompanyType: ratings.rateCompanyType ?? existingJob.rateCompanyType,
         rateSalary: ratings.rateSalary ?? existingJob.rateSalary,
         rateExpectations: ratings.rateExpectations ?? existingJob.rateExpectations,
+        rateLocation: ratings.rateLocation ?? existingJob.rateLocation,
         rate: ratings.rate ?? existingJob.rate,
         ratesExplain: ratings.ratesExplain ?? existingJob.ratesExplain,
     }
@@ -159,6 +166,24 @@ export const saveComments = async (hash, comments) => {
         ...existingJob,
         dateUpdate: new Date().toISOString(),
         comments,
+    }
+
+    await db.put(STORE_NAME, updatedJob)
+    return { job: updatedJob, action: 'updated' }
+}
+
+export const saveGeneratedData = async (hash, generatedData) => {
+    const db = await getDb()
+    const existingJob = await db.get(STORE_NAME, hash)
+
+    if (!existingJob) {
+        return { job: null, action: 'not_found' }
+    }
+
+    const updatedJob = {
+        ...existingJob,
+        dateUpdate: new Date().toISOString(),
+        generatedData,
     }
 
     await db.put(STORE_NAME, updatedJob)
@@ -370,6 +395,7 @@ export default {
     save,
     saveRatings,
     saveComments,
+    saveGeneratedData,
     updateFlags,
     updateJobData,
     fetch,

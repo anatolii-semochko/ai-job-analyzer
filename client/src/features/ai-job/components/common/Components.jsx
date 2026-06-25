@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { saveComments, saveMessages } from '../../service/jobService'
-import { composeRequest } from '../../service/jobAi'
 import MessageModal from './MessageModal'
 import MessagesList from './MessagesList'
-import ComposedEmailModal from './ComposedEmailModal'
+import ApplyDataModal from './ApplyDataModal'
 
 export const getRateRowStyle = (rate) => {
     if (rate === null || rate === undefined) {
@@ -62,6 +61,7 @@ export const rateFields = [
     { key: 'rateProfLevel', explainKey: 'profLevel', label: 'Level', title: 'Professional Level (Junior/Middle/Senior)' },
     { key: 'rateSkills', explainKey: 'skills', label: 'Skills', title: 'Tech Stack Fit' },
     { key: 'rateCompanyType', explainKey: 'companyType', label: 'Type', title: 'Company Type (Product/Outsource)' },
+    { key: 'rateLocation', explainKey: 'location', label: 'Location', title: 'Location fit' },
     { key: 'rateSalary', explainKey: 'salary', label: 'Salary', title: 'Salary Fit' },
     { key: 'rateExpectations', explainKey: 'expectations', label: 'Expect', title: 'Expectations (AI/Blockchain)' },
     { key: 'rate', explainKey: 'total', label: 'Total', title: 'Overall Rating' },
@@ -139,10 +139,7 @@ export const JobDetails = ({ job, onJobUpdate }) => {
     const [showMessageModal, setShowMessageModal] = useState(false)
     const [editingMessage, setEditingMessage] = useState(null)
     const [messagesHeight, setMessagesHeight] = useState(500)
-    const [showEmailModal, setShowEmailModal] = useState(false)
-    const [composedEmail, setComposedEmail] = useState(null)
-    const [composingEmail, setComposingEmail] = useState(false)
-    const [composeError, setComposeError] = useState(null)
+    const [showApplyDataModal, setShowApplyDataModal] = useState(false)
     const descriptionRef = useRef(null)
 
     const handleSave = async () => {
@@ -211,35 +208,9 @@ export const JobDetails = ({ job, onJobUpdate }) => {
         }
     }, [job.description, job.messages])
 
-    const handleComposeRequest = async () => {
-        setComposingEmail(true)
-        setComposeError(null)
-        setComposedEmail(null)
-        setShowEmailModal(true)
-
-        try {
-            const { success, email, error } = await composeRequest(job)
-
-            if (success) {
-                setComposedEmail(email)
-            } else {
-                setComposeError(error || 'Failed to compose email')
-            }
-        } catch (e) {
-            console.error('Failed to compose request:', e)
-            setComposeError('Failed to compose email')
-        } finally {
-            setComposingEmail(false)
-        }
+    const handleCloseApplyDataModal = () => {
+        setShowApplyDataModal(false)
     }
-
-    const handleCloseEmailModal = () => {
-        setShowEmailModal(false)
-        setComposedEmail(null)
-        setComposeError(null)
-        setComposingEmail(false)
-    }
-
 
     const hasChanges = comments !== (job.comments || '')
 
@@ -291,11 +262,10 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                                     onClick={(e) => {
                                         e.preventDefault()
                                         e.stopPropagation()
-                                        handleComposeRequest()
+                                        setShowApplyDataModal(true)
                                     }}
-                                    disabled={composingEmail}
                                 >
-                                    {composingEmail ? 'Composing...' : 'Compose Request'}
+                                    Compose Request
                                 </button>
                             </div>
                         </div>
@@ -306,11 +276,57 @@ export const JobDetails = ({ job, onJobUpdate }) => {
             {job.description && (
                 <div className={`row mt-2 ${job.messages && job.messages.length > 0 ? '' : ''}`}>
                     <div className={job.messages && job.messages.length > 0 ? 'col-7' : 'col-12'}>
-                        <div
-                            ref={descriptionRef}
-                            className="p-2 bg-light rounded small"
-                            dangerouslySetInnerHTML={{ __html: job.description }}
-                        />
+                        <div className="p-2 bg-light rounded small">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <small className="text-muted">Job Description</small>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={async () => {
+                                        try {
+                                            // Convert <br> tags to \n before extracting text
+                                            let htmlContent = job.description
+                                                .replace(/<br\s*\/?>/gi, '\n')
+                                                .replace(/<\/p>/gi, '\n')
+                                                .replace(/<\/div>/gi, '\n')
+                                                .replace(/<\/li>/gi, '\n')
+
+                                            // Extract text from HTML
+                                            const tempDiv = document.createElement('div')
+                                            tempDiv.innerHTML = htmlContent
+                                            let plainText = tempDiv.textContent || tempDiv.innerText || ''
+
+                                            // Clean up extra whitespace and normalize line breaks
+                                            plainText = plainText
+                                                .replace(/\n\s*\n\s*\n/g, '\n\n')  // Remove extra line breaks
+                                                .replace(/[ \t]+/g, ' ')          // Normalize spaces
+                                                .trim()
+
+                                            // Copy to clipboard
+                                            await navigator.clipboard.writeText(plainText)
+
+                                            // Visual feedback
+                                            const btn = document.activeElement
+                                            const originalText = btn.textContent
+                                            btn.textContent = 'Copied!'
+                                            btn.className = 'btn btn-success btn-sm'
+                                            setTimeout(() => {
+                                                btn.textContent = originalText
+                                                btn.className = 'btn btn-outline-secondary btn-sm'
+                                            }, 1000)
+                                        } catch (err) {
+                                            console.error('Failed to copy text: ', err)
+                                        }
+                                    }}
+                                    title="Copy description as plain text"
+                                >
+                                    Copy Text
+                                </button>
+                            </div>
+                            <div
+                                ref={descriptionRef}
+                                dangerouslySetInnerHTML={{ __html: job.description }}
+                            />
+                        </div>
                     </div>
                     {job.messages && job.messages.length > 0 && (
                         <div className="col-5">
@@ -332,12 +348,11 @@ export const JobDetails = ({ job, onJobUpdate }) => {
                 editMessage={editingMessage}
             />
 
-            <ComposedEmailModal
-                isOpen={showEmailModal}
-                onClose={handleCloseEmailModal}
-                email={composedEmail}
-                isLoading={composingEmail}
-                error={composeError}
+            <ApplyDataModal
+                isOpen={showApplyDataModal}
+                job={job}
+                onClose={handleCloseApplyDataModal}
+                onJobUpdate={onJobUpdate}
             />
         </div>
     )

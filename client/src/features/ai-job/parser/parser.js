@@ -3,13 +3,15 @@ import linkedinParser from './sources/linkedin'
 import djinniParser from './sources/djinni'
 import workuaParser from './sources/workua'
 import jobrightParser from './sources/jobright'
+import jobgetherParser from './sources/jobgether'
 
 export const parsers = {
-    dou: douParser,
     linkedin: linkedinParser,
+    dou: douParser,
     djinni: djinniParser,
     workua: workuaParser,
     jobright: jobrightParser,
+    jobgether: jobgetherParser,
 }
 
 export const getParsersList = () => {
