@@ -21,9 +21,9 @@ Generate a highly optimized CV package tailored to the job, maximizing relevance
 
 ---
 
-# STEP 1 — JOB ANALYSIS (REQUIRED STRUCTURED OUTPUT)
+# STEP 1 — JOB ANALYSIS (INTERNAL, DO NOT OUTPUT)
 
-You MUST produce the following structured object before proceeding to STEP 2:
+Internally determine, but DO NOT include this in your response — it only informs the steps below:
 
 {
   "roleType": "",
@@ -167,7 +167,8 @@ Rules:
 
 # OUTPUT FORMAT (STRICT JSON)
 
-Return ONLY valid JSON:
+Your response MUST contain exactly ONE JSON object — the one below — and NOTHING else.
+Do NOT output the STEP 1 analysis object, do NOT output intermediate steps, do NOT wrap the JSON in markdown code fences, and do NOT add any explanation before or after it.
 
 {
   "generatedData": {
