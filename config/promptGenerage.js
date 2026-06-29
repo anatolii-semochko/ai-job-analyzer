@@ -81,21 +81,39 @@ Sort by relevance (most important first)
 
 Generate a concise ATS-optimized summary.
 
-MUST include:
+STRUCTURE RULE (STRICT):
+The summary MUST consist of exactly 3 paragraphs.
+
+---
+
+Paragraph 1 — Experience & Stack
 - 15+ years experience
 - primary technologies from profile
-- 7+ years remote B2B EU experience
-- location: Albania + Ukrainian contractor status
-- distributed teams experience (1–150 people)
+- core engineering domains
+
+Paragraph 2 — Remote + Location + Scale (GROUPED BLOCK)
+This paragraph MUST contain ALL of the following and ONLY them:
+- 7+ years remote B2B experience with European clients
+- Based in Albania
+- Ukrainian contractor status
+- Experience with distributed teams up to 150 engineers
+
+Paragraph 3 — Domain Alignment
 - relevant project selection from candidate experience (ONLY existing projects)
 - alignment with job domain
+- systems / architecture focus
 
-Rules:
-- no fluff
+---
+
+RULES:
+- MUST be exactly 3 paragraphs
+- Paragraph 2 is a single grouped block (do NOT split it)
+- no merging of paragraphs
+- no additional paragraphs
+- no bullet points
 - no marketing language
-- no exaggeration
-- no new invented experience
 - short sentences preferred
+- no invented experience
 
 ---
 
