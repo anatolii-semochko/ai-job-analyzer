@@ -258,99 +258,6 @@
         return null;
     }
 
-    function parseSalaryFromText1(text) {
-        if (!text) return null;
-
-        // Більш детальні паттерни для LinkedIn форматів
-        const salaryPatterns = [
-            // $150K/yr - $200K/yr (range with K suffix)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)K\s*\/\s*yr\s*-\s*\$([\d,]+(?:\.\d+)?)K\s*\/\s*yr/gi,
-                process: (match) => {
-                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000;
-                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
-                    return Math.round((min + max) / 2 / 12);
-                }
-            },
-            // $135,000/yr - $170,000/yr (range without K)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)\s*\/\s*yr\s*-\s*\$([\d,]+(?:\.\d+)?)\s*\/\s*yr/gi,
-                process: (match) => {
-                    const min = parseFloat(match[1].replace(/,/g, ''));
-                    const max = parseFloat(match[2].replace(/,/g, ''));
-                    return Math.round((min + max) / 2 / 12);
-                }
-            },
-            // $75/hr - $85/hr (hourly range)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)\s*\/\s*hr\s*-\s*\$([\d,]+(?:\.\d+)?)\s*\/\s*hr/gi,
-                process: (match) => {
-                    const min = parseFloat(match[1].replace(/,/g, ''));
-                    const max = parseFloat(match[2].replace(/,/g, ''));
-                    return Math.round((min + max) / 2 * 160);
-                }
-            },
-            // $150K - $200K/yr (mixed format)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)K\s*-\s*\$([\d,]+(?:\.\d+)?)K\s*\/\s*yr/gi,
-                process: (match) => {
-                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000;
-                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
-                    return Math.round((min + max) / 2 / 12);
-                }
-            },
-            // $150 - $200K/yr (different format)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)\s*-\s*([\d,]+(?:\.\d+)?)K\s*\/\s*yr/gi,
-                process: (match) => {
-                    const min = parseFloat(match[1].replace(/,/g, '')) * 1000; // assume first number is also in K
-                    const max = parseFloat(match[2].replace(/,/g, '')) * 1000;
-                    return Math.round((min + max) / 2 / 12);
-                }
-            },
-            // $220K/yr (single with K)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)K\s*\/\s*yr/gi,
-                process: (match) => {
-                    const amount = parseFloat(match[1].replace(/,/g, '')) * 1000;
-                    return Math.round(amount / 12);
-                }
-            },
-            // $220,000/yr (single without K)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)\s*\/\s*yr/gi,
-                process: (match) => {
-                    const amount = parseFloat(match[1].replace(/,/g, ''));
-                    return Math.round(amount / 12);
-                }
-            },
-            // $85/hr (hourly single)
-            {
-                pattern: /\$([\d,]+(?:\.\d+)?)\s*\/\s*hr/gi,
-                process: (match) => {
-                    const amount = parseFloat(match[1].replace(/,/g, ''));
-                    return Math.round(amount * 160);
-                }
-            },
-        ];
-
-        for (const salaryDef of salaryPatterns) {
-            const match = text.match(salaryDef.pattern);
-            if (match) {
-                try {
-                    const result = salaryDef.process(match);
-                    if (result && result > 0 && result < 50000) { // reasonable monthly salary range
-                        return result;
-                    }
-                } catch (e) {
-                    continue;
-                }
-            }
-        }
-
-        return null;
-    }
-
     function sanitizeDescription1(html) {
         if (!html) return null;
 
@@ -648,7 +555,7 @@
     // DISPATCH: визначаємо тип сторінки і запускаємо потрібний сценарій
     // ============================================================
 
-    const hasNewLayout = !!document.querySelector('.jobs-search__job-details--wrapper');
+    const hasNewLayout = document.querySelector('.jobs-search__job-details--wrapper') || document.querySelector('.scaffold-layout__list');
 
     if (hasNewLayout) {
         console.log('[LinkedIn scraper] Виявлено .jobs-search__job-details--wrapper — запуск сценарію 2');
