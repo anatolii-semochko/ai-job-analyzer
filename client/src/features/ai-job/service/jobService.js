@@ -246,13 +246,17 @@ export const getStats = async () => {
     const db = await getDb()
     const allJobs = await db.getAll(STORE_NAME)
 
-    const stats = { jobs: 0, favorites: 0, contacted: 0, hidden: 0 }
+    const stats = { jobs: 0, favorites: 0, requested: 0, contacted: 0, refused: 0, hidden: 0 }
 
     for (const job of allJobs) {
-        if (job.hidden || job.refused) {
-            stats.hidden++
-        } else if (job.contacted) {
+        if (job.status === 'Refused') {
+            stats.refused++
+        } else if (['Waiting answer', 'Negotiations', 'Interview'].includes(job.status)) {
             stats.contacted++
+        } else if (job.status === 'Requested') {
+            stats.requested++
+        } else if (job.hidden || job.refused) {
+            stats.hidden++
         } else if (job.favorite) {
             stats.favorites++
         } else {
