@@ -4,6 +4,7 @@ import Favorites from './components/Favorites'
 import Jobs from './components/Jobs'
 import Hidden from './components/Hidden'
 import Requested from './components/Requested'
+import Observing from "./components/Observing"
 import Refused from './components/Refused'
 import Parser from './components/Parser'
 import Settings from './components/Settings'
@@ -11,6 +12,7 @@ import { getStats } from './service/jobService'
 
 const tabs = [
     { id: 'jobs', label: 'Unsorted', statKey: 'jobs', component: Jobs },
+    { id: 'observing', label: 'Observing', statKey: 'observing', component: Observing },
     { id: 'favorites', label: 'Favorites', statKey: 'favorites', component: Favorites },
     { id: 'requested', label: 'Requested', statKey: 'requested', component: Requested },
     { id: 'contacted', label: 'Contacted', statKey: 'contacted', component: Contacted },

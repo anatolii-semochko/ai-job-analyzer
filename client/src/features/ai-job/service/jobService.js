@@ -246,7 +246,7 @@ export const getStats = async () => {
     const db = await getDb()
     const allJobs = await db.getAll(STORE_NAME)
 
-    const stats = { jobs: 0, favorites: 0, requested: 0, contacted: 0, refused: 0, hidden: 0 }
+    const stats = { jobs: 0, favorites: 0, requested: 0, observing: 0, contacted: 0, refused: 0, hidden: 0 }
 
     for (const job of allJobs) {
         if (job.status === 'Refused') {
@@ -255,6 +255,8 @@ export const getStats = async () => {
             stats.contacted++
         } else if (job.status === 'Requested') {
             stats.requested++
+        } else if (job.status === 'Observing') {
+            stats.observing++
         } else if (job.hidden || job.refused) {
             stats.hidden++
         } else if (job.favorite) {
