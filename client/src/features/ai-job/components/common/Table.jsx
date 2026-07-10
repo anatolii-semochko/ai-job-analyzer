@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { JobDetails, RateLabels, RateOverall } from './Components'
 import TableActions from './TableActions'
 import JobStatus from './JobStatus'
+import { getBlockedCompanies } from '../../service/jobService'
 
 const Table = ({
     jobs = [],
@@ -14,6 +15,25 @@ const Table = ({
     onSelectionChange,
 }) => {
     const [expandedJob, setExpandedJob] = useState(null)
+    const [blockedCompanies, setBlockedCompanies] = useState(new Set())
+
+    const loadBlockedCompanies = async () => {
+        try {
+            const records = await getBlockedCompanies()
+            setBlockedCompanies(new Set(records.map(r => r.companyName)))
+        } catch (e) {
+            console.error('Failed to load blocked companies:', e)
+        }
+    }
+
+    useEffect(() => {
+        loadBlockedCompanies()
+    }, [])
+
+    const handleJobUpdate = (updatedJob) => {
+        onJobUpdate?.(updatedJob)
+        loadBlockedCompanies()
+    }
 
     const toggleExpand = (hash) => {
         setExpandedJob(expandedJob === hash ? null : hash)
@@ -125,13 +145,15 @@ const Table = ({
                                     </td>
 
                                     <td>
-                                        <strong>{job.company || 'N/A'}</strong>
+                                        <strong className={blockedCompanies.has(job.company) ? 'text-danger' : ''}>
+                                            {job.company || 'N/A'}
+                                        </strong>
                                         <br />
                                         <span className="text-muted small">{job.country || 'N/A'}</span>
                                     </td>
 
                                     <td style={{ verticalAlign: 'middle' }}>
-                                        <JobStatus job={job} onJobUpdate={onJobUpdate} />
+                                        <JobStatus job={job} onJobUpdate={handleJobUpdate} />
                                     </td>
 
                                     <td>
@@ -165,7 +187,7 @@ const Table = ({
                                 {expandedJob === job.hash && (
                                     <tr>
                                         <td colSpan="8" className="bg-light ">
-                                            <JobDetails job={job} onJobUpdate={onJobUpdate} />
+                                            <JobDetails job={job} onJobUpdate={handleJobUpdate} />
                                         </td>
                                     </tr>
                                 )}
