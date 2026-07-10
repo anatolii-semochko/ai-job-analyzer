@@ -35,6 +35,52 @@ const Parser = ({ onUpdate }) => {
 
     const isUrl = inputData.trim().startsWith('http://') || inputData.trim().startsWith('https://')
 
+    // The proxy's /fetch/batch endpoint caps a single request at 100 URLs, so
+    // larger job lists (e.g. aggregated from several category pages) are split
+    // into chunks and fetched sequentially.
+    const BATCH_CHUNK_SIZE = 50
+
+    const chunkArray = (arr, size) => {
+        const chunks = []
+        for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size))
+        }
+        return chunks
+    }
+
+    // Fetches+parses each of the given job URLs through the proxy server,
+    // reporting overall progress via fetchProgress as it goes.
+    const fetchAndParseJobUrls = async (parserName, jobUrls) => {
+        setParsing(true)
+        const parsedJobs = []
+        let done = 0
+
+        for (const chunk of chunkArray(jobUrls, BATCH_CHUNK_SIZE)) {
+            setFetchProgress({ current: done, total: jobUrls.length, status: 'Fetching job details...' })
+            const results = await fetchBatch(chunk)
+            console.log('[Parser] Batch fetch results:', results.length)
+
+            for (const result of results) {
+                done++
+                setFetchProgress({ current: done, total: jobUrls.length, status: 'Parsing...' })
+
+                if (result.success && result.html) {
+                    try {
+                        const job = parseDetail(parserName, result.html, result.url)
+                        if (job && job.title) {
+                            parsedJobs.push(job)
+                        }
+                    } catch (e) {
+                        console.error('[Parser] Failed to parse detail:', result.url, e)
+                    }
+                }
+            }
+        }
+
+        console.log('[Parser] Parsed', parsedJobs.length, 'jobs with full details')
+        return parsedJobs
+    }
+
     // Given HTML of a list page, extracts vacancy sublinks and fetches+parses each
     // of them through the proxy server (same as the URL-input flow). Returns null
     // if the parser doesn't support detail pages or no vacancy links were found,
@@ -51,32 +97,57 @@ const Parser = ({ onUpdate }) => {
             return null
         }
 
-        setFetchProgress({ current: 0, total: jobUrls.length, status: 'Fetching job details...' })
+        return fetchAndParseJobUrls(parserName, jobUrls)
+    }
 
-        const results = await fetchBatch(jobUrls)
-        console.log('[Parser] Batch fetch results:', results.length)
+    // Batch mode: fetches a list of category/listing URLs, aggregates and dedupes
+    // all vacancy sublinks found across them, then fetches+parses every vacancy.
+    const handleBatchParse = async (listUrls) => {
+        const urls = [...new Set(listUrls.map(u => u.trim()).filter(Boolean))]
+        if (urls.length === 0 || !supportsDetailPages(selectedParser)) return
 
-        setParsing(true)
-        const parsedJobs = []
+        setError(null)
+        setJobs([])
+        setSaveResult(null)
+        setFetching(true)
+        setFetchProgress({ current: 0, total: urls.length, status: 'Fetching category pages...' })
 
-        for (let i = 0; i < results.length; i++) {
-            const result = results[i]
-            setFetchProgress({ current: i + 1, total: results.length, status: 'Parsing...' })
+        try {
+            const jobUrlSet = new Set()
 
-            if (result.success && result.html) {
+            for (let i = 0; i < urls.length; i++) {
+                setFetchProgress({ current: i, total: urls.length, status: `Fetching category ${i + 1}/${urls.length}...` })
                 try {
-                    const job = parseDetail(parserName, result.html, result.url)
-                    if (job && job.title) {
-                        parsedJobs.push(job)
-                    }
+                    const listHtml = await fetchUrl(urls[i])
+                    extractJobUrls(selectedParser, listHtml).forEach(u => jobUrlSet.add(u))
                 } catch (e) {
-                    console.error('[Parser] Failed to parse detail:', result.url, e)
+                    console.error('[Parser] Failed to fetch category page:', urls[i], e)
                 }
             }
-        }
 
-        console.log('[Parser] Parsed', parsedJobs.length, 'jobs with full details')
-        return parsedJobs
+            const jobUrls = Array.from(jobUrlSet)
+            console.log('[Parser] Total unique job URLs across categories:', jobUrls.length)
+
+            if (jobUrls.length === 0) {
+                setError('No vacancies found across the provided category URLs')
+                return
+            }
+
+            const parsedJobs = await fetchAndParseJobUrls(selectedParser, jobUrls)
+            setJobs(parsedJobs)
+            setExpandedJobs({})
+
+            if (parsedJobs.length === 0) {
+                setError('No jobs found in the provided data')
+            }
+        } catch (e) {
+            console.error('[Parser] Batch parse error:', e)
+            setError(`Failed to batch parse: ${e.message || e}`)
+        } finally {
+            setFetching(false)
+            setParsing(false)
+            setFetchProgress({ current: 0, total: 0 })
+        }
     }
 
     const handleFetchAndParse = async () => {
@@ -369,6 +440,9 @@ const Parser = ({ onUpdate }) => {
                                 <ParserComponent
                                     parser={parsers[selectedParser]}
                                     jobs={jobs}
+                                    onBatchParse={handleBatchParse}
+                                    fetching={fetching}
+                                    fetchProgress={fetchProgress}
                                 />
                             ) : (
                                 <p className="text-muted">No jobs parsed yet</p>
