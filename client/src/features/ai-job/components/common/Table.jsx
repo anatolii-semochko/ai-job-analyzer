@@ -4,6 +4,30 @@ import TableActions from './TableActions'
 import JobStatus from './JobStatus'
 import { getBlockedCompanies } from '../../service/jobService'
 
+const HIGHLIGHTED_TITLE_KEYWORDS = [
+    'python',
+    '.net',
+    'laravel',
+    'c++',
+    'junior',
+    'jvm',
+    'ruby',
+    'typescript',
+    'type script',
+]
+
+const isHighlightedTitle = (title) => {
+    if (!title) return false
+    const lowerTitle = title.toLowerCase()
+    return HIGHLIGHTED_TITLE_KEYWORDS.some(keyword => lowerTitle.includes(keyword))
+}
+
+const LOW_SALARY_THRESHOLD = 2500
+
+const isLowSalary = (salary) => {
+    return typeof salary === 'number' && !isNaN(salary) && salary < LOW_SALARY_THRESHOLD
+}
+
 const Table = ({
     jobs = [],
     actions = [],
@@ -124,7 +148,7 @@ const Table = ({
                                     <td>
                                         <div className="d-flex align-items-center gap-1">
                                             <div>
-                                                <strong>
+                                                <strong className={isHighlightedTitle(job.title) ? 'text-danger' : ''}>
                                                     {job.messages && job.messages.length && (
                                                         <span className="text-danger me-1" style={{ fontSize: '16px' }}>●</span>
                                                     )}
@@ -158,7 +182,7 @@ const Table = ({
 
                                     <td>
                                         {job.salary ? (
-                                            <span className="text-success fw-bold">{job.salary}</span>
+                                            <span className={`fw-bold ${isLowSalary(job.salary) ? 'text-danger' : 'text-success'}`}>{job.salary}</span>
                                         ) : (
                                             <span className="text-muted">–</span>
                                         )}
