@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { parse, getParsersList, extractJobUrls, parseDetail, supportsDetailPages, parsers } from '../parser/parser'
+import { parse, getParsersList, extractJobUrls, parseDetail, supportsDetailPages, autoFetchDetails, parsers } from '../parser/parser'
 import { save, updateFilterOptions } from '../service/jobService'
 import { fetchUrl, fetchBatch } from '@react/api/nodeApi'
 import JobRightParser from './parser/JobRightParser'
@@ -86,7 +86,7 @@ const Parser = ({ onUpdate }) => {
     // if the parser doesn't support detail pages or no vacancy links were found,
     // so the caller can fall back to a plain parse of the list page itself.
     const fetchJobDetails = async (parserName, listHtml) => {
-        if (!supportsDetailPages(parserName)) {
+        if (!autoFetchDetails(parserName)) {
             return null
         }
 

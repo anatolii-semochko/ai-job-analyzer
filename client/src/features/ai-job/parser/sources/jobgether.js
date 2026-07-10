@@ -1506,7 +1506,8 @@ export const parseDetail = (html, url) => {
     }
 }
 
-export const supportsDetailPages = true
+// URL and pasted-HTML modes should automatically walk vacancy sublinks.
+export const autoFetchDetails = true
 
 export default {
     name,
@@ -1516,5 +1517,5 @@ export default {
     browserScript,
     extractJobUrls,
     parseDetail,
-    supportsDetailPages,
+    autoFetchDetails,
 }

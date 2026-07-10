@@ -228,6 +228,9 @@ export const validate = (data) => {
            data.includes('vacancy-section')
 }
 
+// URL and pasted-HTML modes should automatically walk vacancy sublinks.
+export const autoFetchDetails = true
+
 export default {
     name,
     label,
@@ -235,4 +238,5 @@ export default {
     parseDetail,
     extractJobUrls,
     validate,
+    autoFetchDetails,
 }

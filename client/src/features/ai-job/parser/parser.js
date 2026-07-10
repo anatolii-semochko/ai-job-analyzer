@@ -68,9 +68,22 @@ export const parseDetail = (parserName, html, url) => {
     return null
 }
 
+// Whether a parser can fetch+parse individual vacancy detail pages at all
+// (i.e. implements extractJobUrls/parseDetail). Used to gate features that
+// explicitly ask for detail pages, like batch multi-URL parsing.
 export const supportsDetailPages = (parserName) => {
     const parser = parsers[parserName]
     return !!(parser && parser.extractJobUrls && parser.parseDetail)
+}
+
+// Whether a parser should automatically walk vacancy sublinks whenever a list
+// page is fetched via URL or pasted as HTML. This is a separate, explicit
+// opt-in (parser.autoFetchDetails === true) so that adding extractJobUrls/
+// parseDetail to a parser for batch mode doesn't silently change the
+// behavior of its existing URL/HTML-paste flows.
+export const autoFetchDetails = (parserName) => {
+    const parser = parsers[parserName]
+    return !!(parser && parser.autoFetchDetails && supportsDetailPages(parserName))
 }
 
 export default {
@@ -81,4 +94,5 @@ export default {
     extractJobUrls,
     parseDetail,
     supportsDetailPages,
+    autoFetchDetails,
 }
