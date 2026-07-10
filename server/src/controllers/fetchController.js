@@ -66,8 +66,8 @@ const fetchBatch = async (req, res) => {
         return res.status(400).json({ success: false, error: 'urls array is required' })
     }
 
-    if (urls.length > 50) {
-        return res.status(400).json({ success: false, error: 'Maximum 50 URLs per batch' })
+    if (urls.length > 100) {
+        return res.status(400).json({ success: false, error: 'Maximum 100 URLs per batch' })
     }
 
     for (const url of urls) {

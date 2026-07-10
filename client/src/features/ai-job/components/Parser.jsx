@@ -35,6 +35,50 @@ const Parser = ({ onUpdate }) => {
 
     const isUrl = inputData.trim().startsWith('http://') || inputData.trim().startsWith('https://')
 
+    // Given HTML of a list page, extracts vacancy sublinks and fetches+parses each
+    // of them through the proxy server (same as the URL-input flow). Returns null
+    // if the parser doesn't support detail pages or no vacancy links were found,
+    // so the caller can fall back to a plain parse of the list page itself.
+    const fetchJobDetails = async (parserName, listHtml) => {
+        if (!supportsDetailPages(parserName)) {
+            return null
+        }
+
+        const jobUrls = extractJobUrls(parserName, listHtml)
+        console.log('[Parser] Found', jobUrls.length, 'job URLs')
+
+        if (jobUrls.length === 0) {
+            return null
+        }
+
+        setFetchProgress({ current: 0, total: jobUrls.length, status: 'Fetching job details...' })
+
+        const results = await fetchBatch(jobUrls)
+        console.log('[Parser] Batch fetch results:', results.length)
+
+        setParsing(true)
+        const parsedJobs = []
+
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i]
+            setFetchProgress({ current: i + 1, total: results.length, status: 'Parsing...' })
+
+            if (result.success && result.html) {
+                try {
+                    const job = parseDetail(parserName, result.html, result.url)
+                    if (job && job.title) {
+                        parsedJobs.push(job)
+                    }
+                } catch (e) {
+                    console.error('[Parser] Failed to parse detail:', result.url, e)
+                }
+            }
+        }
+
+        console.log('[Parser] Parsed', parsedJobs.length, 'jobs with full details')
+        return parsedJobs
+    }
+
     const handleFetchAndParse = async () => {
         if (!isUrl) return
 
@@ -50,52 +94,20 @@ const Parser = ({ onUpdate }) => {
             setFetchProgress({ current: 0, total: 1, status: 'Fetching list page...' })
             const listHtml = await fetchUrl(url)
             console.log('[Parser] Fetched list HTML:', listHtml.length, 'bytes')
+            setInputData(listHtml)
 
-            if (supportsDetailPages(selectedParser)) {
-                const jobUrls = extractJobUrls(selectedParser, listHtml)
-                console.log('[Parser] Found', jobUrls.length, 'job URLs')
+            const parsedJobs = await fetchJobDetails(selectedParser, listHtml)
 
-                if (jobUrls.length === 0) {
-                    handleParseData(listHtml)
-                    return
-                }
-
-                setFetchProgress({ current: 0, total: jobUrls.length, status: 'Fetching job details...' })
-
-                const results = await fetchBatch(jobUrls)
-                console.log('[Parser] Batch fetch results:', results.length)
-
-                setParsing(true)
-                const parsedJobs = []
-
-                for (let i = 0; i < results.length; i++) {
-                    const result = results[i]
-                    setFetchProgress({ current: i + 1, total: results.length, status: 'Parsing...' })
-
-                    if (result.success && result.html) {
-                        try {
-                            const job = parseDetail(selectedParser, result.html, result.url)
-                            if (job && job.title) {
-                                parsedJobs.push(job)
-                            }
-                        } catch (e) {
-                            console.error('[Parser] Failed to parse detail:', result.url, e)
-                        }
-                    }
-                }
-
-                console.log('[Parser] Parsed', parsedJobs.length, 'jobs with full details')
-                setJobs(parsedJobs)
-                setExpandedJobs({})
-
-                if (parsedJobs.length === 0) {
-                    setError('No jobs found in the provided data')
-                }
-
-                setInputData(listHtml)
-            } else {
-                setInputData(listHtml)
+            if (parsedJobs === null) {
                 handleParseData(listHtml)
+                return
+            }
+
+            setJobs(parsedJobs)
+            setExpandedJobs({})
+
+            if (parsedJobs.length === 0) {
+                setError('No jobs found in the provided data')
             }
         } catch (e) {
             console.error('[Parser] Fetch error:', e)
@@ -134,8 +146,40 @@ const Parser = ({ onUpdate }) => {
         }
     }
 
-    const handleParse = () => {
-        handleParseData(inputData)
+    // Pasted/uploaded HTML mode: mirrors the URL-input flow above — if the data
+    // looks like a list page for a parser that supports detail pages, fetch and
+    // parse each vacancy sublink through the proxy instead of only reading the
+    // short info visible on the list page itself.
+    const handleParse = async () => {
+        const data = inputData
+
+        setError(null)
+        setSaveResult(null)
+        setFetching(true)
+        setFetchProgress({ current: 0, total: 0 })
+
+        try {
+            const parsedJobs = await fetchJobDetails(selectedParser, data)
+
+            if (parsedJobs === null) {
+                await handleParseData(data)
+                return
+            }
+
+            setJobs(parsedJobs)
+            setExpandedJobs({})
+
+            if (parsedJobs.length === 0) {
+                setError('No jobs found in the provided data')
+            }
+        } catch (e) {
+            console.error('[Parser] Fetch error:', e)
+            setError(`Failed to fetch job details: ${e.message || e}`)
+        } finally {
+            setFetching(false)
+            setParsing(false)
+            setFetchProgress({ current: 0, total: 0 })
+        }
     }
 
     const handleFileUpload = (event) => {
@@ -250,9 +294,15 @@ const Parser = ({ onUpdate }) => {
                                 <button
                                     className="btn btn-primary w-100"
                                     onClick={handleParse}
-                                    disabled={parsing || !inputData.trim()}
+                                    disabled={fetching || parsing || !inputData.trim()}
                                 >
-                                    {parsing ? 'Parsing...' : 'Parse'}
+                                    {fetching
+                                        ? (fetchProgress.total > 0
+                                            ? `Fetching ${fetchProgress.current}/${fetchProgress.total}...`
+                                            : 'Fetching...')
+                                        : parsing
+                                            ? 'Parsing...'
+                                            : 'Parse'}
                                 </button>
                             )}
                         </div>
