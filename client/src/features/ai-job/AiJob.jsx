@@ -3,6 +3,7 @@ import Contacted from './components/Contacted'
 import Favorites from './components/Favorites'
 import Jobs from './components/Jobs'
 import Hidden from './components/Hidden'
+import All from './components/All'
 import Requested from './components/Requested'
 import Observing from "./components/Observing"
 import Refused from './components/Refused'
@@ -18,6 +19,7 @@ const tabs = [
     { id: 'contacted', label: 'Contacted', statKey: 'contacted', component: Contacted },
     { id: 'refused', label: 'Refused', statKey: 'refused', component: Refused },
     { id: 'hidden', label: 'Hidden', statKey: 'hidden', component: Hidden },
+    { id: 'all', label: 'All', statKey: 'hidden', component: All },
     { id: 'parser', label: 'Parser', statKey: null, component: Parser },
     { id: 'settings', label: 'Settings', statKey: null, component: Settings },
 ]
