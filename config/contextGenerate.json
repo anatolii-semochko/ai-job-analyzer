@@ -224,7 +224,18 @@
           "avoidSoftSkillLists": true,
           "injectTop3JobKeywords": true,
           "frontLoadRelevantStack": true,
-          "reduceBackendWhenFrontendJob": true
+          "reduceBackendWhenFrontendJob": true,
+          "forceParagraphStructure": {
+            "enabled": true,
+            "paragraphCount": 3,
+            "lockedParagraph2": true,
+            "paragraph2MustContain": [
+              "remote_eu",
+              "location_albania",
+              "ukrainian_contractor",
+              "distributed_teams_150"
+            ]
+          }
         },
         "coreCompetencies": {
           "useMainCompetencies": true,

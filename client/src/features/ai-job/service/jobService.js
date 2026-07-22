@@ -4,9 +4,10 @@ import promptDefault from '@config/promptDefault'
 import promptMain from '@config/promptMain'
 
 const DB_NAME = 'ai-job-db'
-const DB_VERSION = 3
+const DB_VERSION = 4
 const STORE_NAME = 'jobs'
 const FILTERS_STORE_NAME = 'filters'
+const BLOCKED_STORE_NAME = 'blocked'
 const PROMPT_KEY = 'candidate_prompt'
 const APPLY_PROMPT_KEY = 'apply_prompt'
 
@@ -27,6 +28,11 @@ const getDb = async () => {
             if (oldVersion < 3) {
                 // Додано поля status і statusDate в версії 3
                 // IndexedDB автоматично підтримує нові поля в об'єктах
+            }
+            if (oldVersion < 4) {
+                if (!db.objectStoreNames.contains(BLOCKED_STORE_NAME)) {
+                    db.createObjectStore(BLOCKED_STORE_NAME, { keyPath: 'companyName' })
+                }
             }
         },
     })
@@ -246,14 +252,21 @@ export const getStats = async () => {
     const db = await getDb()
     const allJobs = await db.getAll(STORE_NAME)
 
-    const stats = { jobs: 0, favorites: 0, contacted: 0, hidden: 0 }
+    const stats = { jobs: 0, favorites: 0, requested: 0, observing: 0, contacted: 0, refused: 0, hidden: 0 }
 
     for (const job of allJobs) {
-        if (job.hidden || job.refused) {
-            stats.hidden++
-        } else if (job.contacted) {
+        if (job.status === 'Refused') {
+            stats.refused++
+        } else if (['Waiting answer', 'Negotiations', 'Interview'].includes(job.status)) {
             stats.contacted++
+        } else if (job.status === 'Requested') {
+            stats.requested++
+        } else if (job.status === 'Observing') {
+            stats.observing++
+        } else if (job.hidden || job.refused) {
+            stats.hidden++
         } else if (job.favorite) {
+            console.log({job});
             stats.favorites++
         } else {
             stats.jobs++
@@ -292,6 +305,20 @@ export const getFilterOptions = async () => {
     const db = await getDb()
     const options = await db.get(FILTERS_STORE_NAME, 'options')
     return options || null
+}
+
+export const blockCompany = async (companyName, comment = '') => {
+    if (!companyName) return null
+
+    const db = await getDb()
+    const record = { companyName, status: 'blocked', comment }
+    await db.put(BLOCKED_STORE_NAME, record)
+    return record
+}
+
+export const getBlockedCompanies = async () => {
+    const db = await getDb()
+    return db.getAll(BLOCKED_STORE_NAME)
 }
 
 export const exportDatabase = async () => {
@@ -405,6 +432,8 @@ export default {
     getStats,
     updateFilterOptions,
     getFilterOptions,
+    blockCompany,
+    getBlockedCompanies,
     exportDatabase,
     importJobs,
     getPrompt,

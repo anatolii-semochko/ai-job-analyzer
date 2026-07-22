@@ -1,7 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { JobDetails, RateLabels, RateOverall } from './Components'
 import TableActions from './TableActions'
 import JobStatus from './JobStatus'
+import { getBlockedCompanies } from '../../service/jobService'
+
+const HIGHLIGHTED_TITLE_KEYWORDS = [
+    'python',
+    '.net',
+    'laravel',
+    'c++',
+    'junior',
+    'jvm',
+    'ruby',
+    'typescript',
+    'type script',
+]
+
+const isHighlightedTitle = (title) => {
+    if (!title) return false
+    const lowerTitle = title.toLowerCase()
+    return HIGHLIGHTED_TITLE_KEYWORDS.some(keyword => lowerTitle.includes(keyword))
+}
+
+const LOW_SALARY_THRESHOLD = 2500
+
+const isLowSalary = (salary) => {
+    return typeof salary === 'number' && !isNaN(salary) && salary < LOW_SALARY_THRESHOLD
+}
 
 const Table = ({
     jobs = [],
@@ -14,6 +39,25 @@ const Table = ({
     onSelectionChange,
 }) => {
     const [expandedJob, setExpandedJob] = useState(null)
+    const [blockedCompanies, setBlockedCompanies] = useState(new Set())
+
+    const loadBlockedCompanies = async () => {
+        try {
+            const records = await getBlockedCompanies()
+            setBlockedCompanies(new Set(records.map(r => r.companyName)))
+        } catch (e) {
+            console.error('Failed to load blocked companies:', e)
+        }
+    }
+
+    useEffect(() => {
+        loadBlockedCompanies()
+    }, [])
+
+    const handleJobUpdate = (updatedJob) => {
+        onJobUpdate?.(updatedJob)
+        loadBlockedCompanies()
+    }
 
     const toggleExpand = (hash) => {
         setExpandedJob(expandedJob === hash ? null : hash)
@@ -104,7 +148,7 @@ const Table = ({
                                     <td>
                                         <div className="d-flex align-items-center gap-1">
                                             <div>
-                                                <strong>
+                                                <strong className={isHighlightedTitle(job.title) ? 'text-danger' : ''}>
                                                     {job.messages && job.messages.length && (
                                                         <span className="text-danger me-1" style={{ fontSize: '16px' }}>●</span>
                                                     )}
@@ -125,18 +169,20 @@ const Table = ({
                                     </td>
 
                                     <td>
-                                        <strong>{job.company || 'N/A'}</strong>
+                                        <strong className={blockedCompanies.has(job.company) ? 'text-danger' : ''}>
+                                            {job.company || 'N/A'}
+                                        </strong>
                                         <br />
                                         <span className="text-muted small">{job.country || 'N/A'}</span>
                                     </td>
 
                                     <td style={{ verticalAlign: 'middle' }}>
-                                        <JobStatus job={job} onJobUpdate={onJobUpdate} />
+                                        <JobStatus job={job} onJobUpdate={handleJobUpdate} />
                                     </td>
 
                                     <td>
                                         {job.salary ? (
-                                            <span className="text-success fw-bold">{job.salary}</span>
+                                            <span className={`fw-bold ${isLowSalary(job.salary) ? 'text-danger' : 'text-success'}`}>{job.salary}</span>
                                         ) : (
                                             <span className="text-muted">–</span>
                                         )}
@@ -165,7 +211,7 @@ const Table = ({
                                 {expandedJob === job.hash && (
                                     <tr>
                                         <td colSpan="8" className="bg-light ">
-                                            <JobDetails job={job} onJobUpdate={onJobUpdate} />
+                                            <JobDetails job={job} onJobUpdate={handleJobUpdate} />
                                         </td>
                                     </tr>
                                 )}

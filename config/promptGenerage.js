@@ -21,9 +21,9 @@ Generate a highly optimized CV package tailored to the job, maximizing relevance
 
 ---
 
-# STEP 1 — JOB ANALYSIS (REQUIRED STRUCTURED OUTPUT)
+# STEP 1 — JOB ANALYSIS (INTERNAL, DO NOT OUTPUT)
 
-You MUST produce the following structured object before proceeding to STEP 2:
+Internally determine, but DO NOT include this in your response — it only informs the steps below:
 
 {
   "roleType": "",
@@ -81,21 +81,39 @@ Sort by relevance (most important first)
 
 Generate a concise ATS-optimized summary.
 
-MUST include:
+STRUCTURE RULE (STRICT):
+The summary MUST consist of exactly 3 paragraphs.
+
+---
+
+Paragraph 1 — Experience & Stack
 - 15+ years experience
 - primary technologies from profile
-- 7+ years remote B2B EU experience
-- location: Albania + Ukrainian contractor status
-- distributed teams experience (1–150 people)
+- core engineering domains
+
+Paragraph 2 — Remote + Location + Scale (GROUPED BLOCK)
+This paragraph MUST contain ALL of the following and ONLY them:
+- 7+ years remote B2B experience with European clients
+- Based in Albania
+- Ukrainian contractor status
+- Experience with distributed teams up to 150 engineers
+
+Paragraph 3 — Domain Alignment
 - relevant project selection from candidate experience (ONLY existing projects)
 - alignment with job domain
+- systems / architecture focus
 
-Rules:
-- no fluff
+---
+
+RULES:
+- MUST be exactly 3 paragraphs
+- Paragraph 2 is a single grouped block (do NOT split it)
+- no merging of paragraphs
+- no additional paragraphs
+- no bullet points
 - no marketing language
-- no exaggeration
-- no new invented experience
 - short sentences preferred
+- no invented experience
 
 ---
 
@@ -167,7 +185,8 @@ Rules:
 
 # OUTPUT FORMAT (STRICT JSON)
 
-Return ONLY valid JSON:
+Your response MUST contain exactly ONE JSON object — the one below — and NOTHING else.
+Do NOT output the STEP 1 analysis object, do NOT output intermediate steps, do NOT wrap the JSON in markdown code fences, and do NOT add any explanation before or after it.
 
 {
   "generatedData": {

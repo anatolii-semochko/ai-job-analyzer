@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { updateJobData } from '../../service/jobService'
+import { updateJobData, blockCompany } from '../../service/jobService'
 import { getDaysAgo } from '../../utils/dateUtils'
 
 const STATUS_OPTIONS = {
@@ -10,7 +10,8 @@ const STATUS_OPTIONS = {
     'Negotiations': { color: '#3945ed', bg: '#7afa00' },
     'Interview': { color: '#ff0000', bg: '#7afa00' },
     'Deactivated': { color: '#6c757d', bg: '#e9ecef' },
-    'Refused': { color: '#dc3545', bg: '#f8d7da' }
+    'Refused': { color: '#dc3545', bg: '#f8d7da' },
+    'Refused + BLOCK': { color: '#dc3545', bg: '#f8d7da' }
 }
 
 const JobStatus = ({ job, onJobUpdate }) => {
@@ -20,12 +21,20 @@ const JobStatus = ({ job, onJobUpdate }) => {
     const handleStatusChange = async (newStatus) => {
         try {
             const now = new Date().toISOString().split('T')[0] // Дата без часу (YYYY-MM-DD)
+            const isBlockAction = newStatus === 'Refused + BLOCK'
+            const statusToSave = isBlockAction ? 'Refused' : newStatus
+
             const updatedJob = await updateJobData({
                 ...job,
-                status: newStatus,
+                status: statusToSave,
                 statusDate: now
             })
-            setCurrentStatus(newStatus)
+
+            if (isBlockAction && job.company) {
+                await blockCompany(job.company)
+            }
+
+            setCurrentStatus(statusToSave)
             onJobUpdate?.(updatedJob)
             setIsEditing(false)
         } catch (e) {

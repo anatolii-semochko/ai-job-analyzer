@@ -2,8 +2,8 @@ import React from 'react'
 import JobList from './common/JobList'
 import { ACTION_TYPES } from './common/TableActions'
 
-const Contacted = ({ onUpdate, selectedItems, onSelectionChange }) => {
-    const filterFn = (job) => ['Waiting answer', 'Negotiations', 'Interview'].includes(job.status)
+const Observing = ({ onUpdate, selectedItems, onSelectionChange }) => {
+    const filterFn = (job) => ['Observing'].includes(job.status)
 
     const actions = [
         ACTION_TYPES.AI,
@@ -14,12 +14,12 @@ const Contacted = ({ onUpdate, selectedItems, onSelectionChange }) => {
 
     return (
         <JobList
-            title="Contacted"
+            title="Observing"
             filterFn={filterFn}
             actions={actions}
             defaultSortBy="rate"
             defaultSortOrder="desc"
-            emptyMessage="No contacted jobs"
+            emptyMessage="No observing jobs"
             onUpdate={onUpdate}
             showAddButton={true}
             showBatchAnalyze={true}
@@ -29,4 +29,4 @@ const Contacted = ({ onUpdate, selectedItems, onSelectionChange }) => {
     )
 }
 
-export default Contacted
+export default Observing

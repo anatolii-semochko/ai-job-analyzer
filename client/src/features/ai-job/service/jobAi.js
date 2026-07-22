@@ -145,20 +145,47 @@ job (JSON):
 ${JSON.stringify(job)}`
 }
 
-const parseGeneratedData = (response) => {
-    try {
-        const jsonMatch = response.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) {
-            console.error('[JobAI] No JSON found in generate response:', response)
-            return null
-        }
+const findJsonObjects = (text) => {
+    const objects = []
 
-        const data = JSON.parse(jsonMatch[0])
-        return data.generatedData || null
-    } catch (e) {
-        console.error('[JobAI] Failed to parse generated data:', e, response)
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] !== '{') continue
+
+        let depth = 0
+        for (let j = i; j < text.length; j++) {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') {
+                depth--
+                if (depth === 0) {
+                    objects.push(text.slice(i, j + 1))
+                    break
+                }
+            }
+        }
+    }
+
+    return objects
+}
+
+const parseGeneratedData = (response) => {
+    const candidates = findJsonObjects(response)
+
+    if (!candidates.length) {
+        console.error('[JobAI] No JSON found in generate response:', response)
         return null
     }
+
+    for (const candidate of candidates) {
+        try {
+            const data = JSON.parse(candidate)
+            if (data.generatedData) return data.generatedData
+        } catch {
+            // not valid JSON, try next candidate
+        }
+    }
+
+    console.error('[JobAI] No generatedData found in generate response:', response)
+    return null
 }
 
 export const generateApplyData = async (job) => {
